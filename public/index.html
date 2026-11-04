@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نظام تسجيل الحضور</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{--bg:#eef1f3;--ink:#17232b;--accent:#0b6b6f;--line:#cfd8dc;--bad:#a4262c;--good:#d9efe3;--badbg:#f8dcdc}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;line-height:1.7}
+  main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+  header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:16px}
+  h1{font-size:1.3rem;margin:0}
+  h2{font-size:1.1rem;margin:24px 0 8px}
+  section{border-top:1px solid var(--line);padding:12px 0}
+  button,.btn{font:inherit;background:var(--accent);color:#fff;border:0;border-radius:6px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+  button.quiet,.btn.quiet{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #f2b705;outline-offset:2px}
+  input[type=text],input[type=email]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;width:100%;max-width:340px;background:#fff}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .msg{padding:10px 12px;border-radius:6px;margin:10px 0}
+  .ok{background:var(--good)} .err{background:var(--badbg);color:var(--bad)}
+  .hidden{display:none !important}
+  .qrbox{text-align:center;padding:12px 0}
+  .qrbox img{width:100%;max-width:340px;background:#fff;padding:8px;border:1px solid var(--line)}
+  .count{font-size:2rem;font-weight:600}
+  ul{padding-inline-start:20px;margin:6px 0}
+  .muted{color:#55656e;font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>نظام تسجيل الحضور</h1>
+    <button id="logout" class="quiet hidden">خروج</button>
+  </header>
+  <div id="msg" aria-live="polite"></div>
+
+  <section id="login" class="hidden">
+    <p>سجّل الدخول بإيميلك الجامعي.</p>
+    <div id="gbtn"></div>
+    <div id="dev" class="hidden">
+      <p class="muted">وضع التطوير: دخول تجريبي بدون Google</p>
+      <div class="row">
+        <input id="devEmail" type="email" placeholder="name@student.uomosul.edu.iq" dir="ltr">
+        <button id="devBtn">دخول</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="student" class="hidden">
+    <p>لتسجيل الحضور، امسح رمز QR المعروض في القاعة بكاميرا هاتفك.</p>
+    <h2>حضوري</h2>
+    <ul id="history"></ul>
+    <p id="emptyHistory" class="muted hidden">لا يوجد حضور مسجّل بعد.</p>
+  </section>
+
+  <section id="instructor" class="hidden">
+    <div id="live" class="hidden">
+      <h2 id="liveTitle"></h2>
+      <div class="qrbox" id="qrbox"><img id="qr" alt="رمز QR للحضور"></div>
+      <p class="muted">يتجدد الرمز كل بضع ثوانٍ. اعرضه على الشاشة ولا تصوّره.</p>
+      <p>الحاضرون: <span class="count" id="count">0</span></p>
+      <ul id="presentList"></ul>
+      <div class="row">
+        <a id="export" class="btn quiet" href="#">تصدير الحضور (CSV)</a>
+        <button id="closeBtn">إنهاء المحاضرة</button>
+      </div>
+    </div>
+
+    <h2>مقرراتي</h2>
+    <div class="row">
+      <input id="courseName" type="text" placeholder="اسم المقرر">
+      <button id="addCourse">إضافة مقرر</button>
+    </div>
+    <div id="courses"></div>
+    <p class="muted">ملف الطلاب CSV بالأعمدة: email,name,student_no</p>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const show = (id, on = true) => $(id).classList.toggle("hidden", !on);
+const say = (text, ok = true) => {
+  const d = document.createElement("div");
+  d.className = "msg " + (ok ? "ok" : "err");
+  d.textContent = text;
+  $("msg").replaceChildren(d);
+};
+async function api(path, method = "GET", body) {
+  const r = await fetch(path, {
+    method, headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "حدث خطأ");
+  return data;
+}
+
+// رابط QR: /?s=<id>&t=<token>
+const q = new URLSearchParams(location.search);
+const pending = q.get("s") && q.get("t") ? { sessionId: +q.get("s"), token: q.get("t") } : null;
+
+async function init() {
+  const cfg = await api("/api/config");
+  try { return enter(await api("/api/me")); } catch {}
+  show("login");
+  if (cfg.googleClientId && window.google) {
+    google.accounts.id.initialize({
+      client_id: cfg.googleClientId,
+      callback: async r => {
+        try { enter(await api("/api/login/google", "POST", { credential: r.credential })); }
+        catch (e) { say(e.message, false); }
+      },
+    });
+    google.accounts.id.renderButton($("gbtn"), { theme: "outline", size: "large" });
+  }
+  if (cfg.devLogin) {
+    show("dev");
+    $("devBtn").onclick = async () => {
+      try { enter(await api("/api/login/dev", "POST", { email: $("devEmail").value })); }
+      catch (e) { say(e.message, false); }
+    };
+  }
+}
+
+function enter(me) {
+  show("login", false); show("logout");
+  $("msg").replaceChildren();
+  if (me.role === "student") showStudent(); else showInstructor();
+}
+
+$("logout").onclick = async () => { await api("/api/logout", "POST"); location.href = "/"; };
+
+// ---------- الطالب ----------
+async function showStudent() {
+  show("student");
+  if (pending) {
+    try {
+      const r = await api("/api/attend", "POST", pending);
+      say("تم تسجيل حضورك في: " + r.course);
+    } catch (e) { say(e.message, false); }
+    history.replaceState(null, "", "/");
+  }
+  const rows = await api("/api/my-attendance");
+  show("emptyHistory", rows.length === 0);
+  $("history").replaceChildren(...rows.map(r => {
+    const li = document.createElement("li");
+    li.textContent = `${r.course} — ${new Date(r.ts).toLocaleString("ar-IQ")}`;
+    return li;
+  }));
+}
+
+// ---------- المحاضر ----------
+let active = null, timers = [];
+
+async function showInstructor() { show("instructor"); loadCourses(); }
+
+$("addCourse").onclick = async () => {
+  try { await api("/api/courses", "POST", { name: $("courseName").value }); $("courseName").value = ""; loadCourses(); }
+  catch (e) { say(e.message, false); }
+};
+
+async function loadCourses() {
+  const courses = await api("/api/courses");
+  $("courses").replaceChildren(...courses.map(c => {
+    const box = document.createElement("section");
+    const h = document.createElement("strong");
+    h.textContent = `${c.name} (${c.enrolled} طالب)`;
+    const file = document.createElement("input");
+    file.type = "file"; file.accept = ".csv,text/csv"; file.className = "hidden";
+    const imp = document.createElement("button");
+    imp.className = "quiet"; imp.textContent = "استيراد الطلاب";
+    imp.onclick = () => file.click();
+    file.onchange = async () => {
+      try {
+        const csv = await file.files[0].text();
+        const r = await api(`/api/courses/${c.id}/import`, "POST", { csv });
+        say(`تم استيراد ${r.imported} طالب` + (r.skipped ? ` وتجاهل ${r.skipped} (إيميل خارج النطاق الجامعي)` : ""));
+        loadCourses();
+      } catch (e) { say(e.message, false); }
+    };
+    const start = document.createElement("button");
+    start.textContent = "بدء محاضرة";
+    start.onclick = () => startLecture(c);
+    const row = document.createElement("div");
+    row.className = "row";
+    row.append(imp, start, file);
+    box.append(h, row);
+    return box;
+  }));
+}
+
+async function startLecture(c) {
+  try {
+    const { id } = await api(`/api/courses/${c.id}/sessions`, "POST");
+    stopTimers();
+    active = id;
+    $("liveTitle").textContent = "محاضرة مفتوحة: " + c.name;
+    $("export").href = `/api/sessions/${id}/export.csv`;
+    show("live"); show("qrbox"); show("closeBtn");
+    refreshQr(); refreshList();
+    timers = [setInterval(refreshQr, 8000), setInterval(refreshList, 4000)];
+  } catch (e) { say(e.message, false); }
+}
+
+const stopTimers = () => { timers.forEach(clearInterval); timers = []; };
+
+async function refreshQr() {
+  try { $("qr").src = (await api(`/api/sessions/${active}/qr`)).dataUrl; }
+  catch (e) { say(e.message, false); stopTimers(); }
+}
+
+async function refreshList() {
+  try {
+    const r = await api(`/api/sessions/${active}/attendance`);
+    $("count").textContent = `${r.present.length} / ${r.enrolled}`;
+    $("presentList").replaceChildren(...r.present.map(p => {
+      const li = document.createElement("li");
+      li.textContent = p.name || p.email;
+      return li;
+    }));
+  } catch {}
+}
+
+$("closeBtn").onclick = async () => {
+  try {
+    await api(`/api/sessions/${active}/close`, "POST");
+    stopTimers(); refreshList();
+    show("qrbox", false); show("closeBtn", false);
+    say("تم إنهاء المحاضرة. يمكنك الآن تصدير الحضور.");
+  } catch (e) { say(e.message, false); }
+};
+
+window.addEventListener("load", init);
+</script>
+</body>
+</html>
