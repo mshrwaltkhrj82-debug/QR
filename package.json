@@ -1,0 +1,9 @@
+{
+  "name": "qr-attendance",
+  "version": "1.0.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file=.env server.js"
+  }
+}
