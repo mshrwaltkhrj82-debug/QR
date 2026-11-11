@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>استوديو وماسح الـ QR الذكي</title>
+
+    <!-- مكتبات قراءة وتوليد الـ QR -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
+    <!-- خط عربي حديث -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #090D16;
+            --card-glass: rgba(21, 30, 50, 0.94);
+            --input-bg: #0E1422;
+            --primary-violet: #6C5CE7;
+            --accent-cyan: #00F5D4;
+            --action-coral: #FF3B7B;
+            --success-mint: #10B981;
+            --text-ice: #F1F5F9;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-ice);
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* ==================== شاشة الكاميرا والمسح ==================== */
+        #scannerView {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #cameraVideo {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            background: #05080f;
+        }
+
+        /* بطاقة النتيجة العلوية العائمة */
+        .result-glass-card {
+            position: absolute;
+            top: 24px;
+            width: min(92%, 520px);
+            min-height: 82px;
+            background: var(--card-glass);
+            border: 2px solid rgba(0, 245, 212, 0.3);
+            border-radius: 20px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 700;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            word-break: break-all;
+            user-select: text;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* زر فتح الرابط / الإيميل */
+        #openUrlBtn {
+            position: absolute;
+            top: 120px;
+            width: min(75%, 320px);
+            height: 54px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: var(--primary-violet);
+            color: var(--text-ice);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            transition: transform 0.15s ease;
+        }
+
+        /* إطار التركيز والليزر المتحرك */
+        .focus-frame {
+            width: min(68vw, 280px);
+            height: min(68vw, 280px);
+            position: relative;
+            border-radius: 26px;
+            animation: pulseFrame 2.2s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-color: var(--accent-cyan);
+            border-style: solid;
+            border-width: 0;
+            transition: border-color 0.3s ease;
+        }
+        .corner.tl { top: 0; left: 0; border-top-width: 6px; border-left-width: 6px; border-top-left-radius: 22px; }
+        .corner.tr { top: 0; right: 0; border-top-width: 6px; border-right-width: 6px; border-top-right-radius: 22px; }
+        .corner.bl { bottom: 0; left: 0; border-bottom-width: 6px; border-left-width: 6px; border-bottom-left-radius: 22px; }
+        .corner.br { bottom: 0; right: 0; border-bottom-width: 6px; border-right-width: 6px; border-bottom-right-radius: 22px; }
+
+        .laser-bar {
+            position: absolute;
+            left: 8%;
+            width: 84%;
+            height: 4px;
+            background: var(--accent-cyan);
+            border-radius: 999px;
+            box-shadow: 0 0 14px var(--accent-cyan), 0 0 28px var(--accent-cyan);
+            animation: scanLaser 2.4s infinite ease-in-out;
+        }
+
+        @keyframes pulseFrame {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        @keyframes scanLaser {
+            0%, 100% { top: 10%; }
+            50% { top: 88%; }
+        }
+
+        /* زر مسح QR من صورة في الجهاز */
+        #scanImageBtn {
+            margin-top: 28px;
+            width: min(85%, 360px);
+            height: 54px;
+            background: var(--card-glass);
+            color: var(--accent-cyan);
+            border: 2px solid rgba(0, 245, 212, 0.45);
+            border-radius: 999px;
+            font-size: 0.98rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(10px);
+            transition: transform 0.12s ease;
+        }
+
+        /* ==================== نافذة استوديو التوليد ==================== */
+        #generatorView {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-deep);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 16px 100px;
+            overflow-y: auto;
+            transform: translateX(110%);
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        #generatorView.active {
+            transform: translateX(0);
+        }
+
+        .qr-showcase-card {
+            width: min(65vw, 250px);
+            height: min(65vw, 250px);
+            background: var(--card-glass);
+            border: 2px solid rgba(108, 92, 231, 0.45);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6);
+            margin-top: 6px;
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #qrCanvas {
+            width: 100% !important;
+            height: 100% !important;
+            background: #ffffff;
+            border-radius: 12px;
+            display: none;
+        }
+
+        #qrPlaceholder {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 10px;
+        }
+
+        #statusText {
+            margin-top: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 28px;
+        }
+
+        /* أزرار حفظ PNG و JPG */
+        .save-buttons-row {
+            display: flex;
+            gap: 12px;
+            width: min(94%, 500px);
+            margin-top: 8px;
+        }
+
+        .save-btn {
+            flex: 1;
+            height: 48px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            color: var(--text-ice);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+            transition: transform 0.12s ease;
+        }
+
+        .save-png { background: var(--success-mint); }
+        .save-jpg { background: var(--action-coral); }
+
+        /* حقل الإدخال */
+        .input-wrapper {
+            width: min(94%, 500px);
+            margin-top: 16px;
+        }
+
+        #qrInput {
+            width: 100%;
+            height: 64px;
+            background: var(--input-bg);
+            border: 2px solid rgba(0, 245, 212, 0.35);
+            border-radius: 18px;
+            padding: 0 18px;
+            color: var(--text-ice);
+            font-size: 1rem;
+            font-weight: 600;
+            outline: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+            user-select: text;
+        }
+
+        #qrInput::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* زر رفع الصور أو ملف PDF */
+        #pickFilesBtn {
+            width: min(94%, 500px);
+            height: 58px;
+            margin-top: 14px;
+            background: var(--primary-violet);
+            color: var(--text-ice);
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            border-radius: 18px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+            transition: transform 0.12s ease;
+        }
+
+        /* ==================== زر التبديل السفلي العائم ==================== */
+        #toggleModeBtn {
+            position: fixed;
+            bottom: 22px;
+            width: min(86%, 420px);
+            height: 58px;
+            background: var(--primary-violet);
+            color: var(--text-ice);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+            z-index: 10;
+            transition: transform 0.12s ease, background-color 0.25s ease;
+        }
+
+        button:active {
+            transform: scale(0.93) !important;
+        }
+
+        .pop-anim {
+            animation: popScale 0.28s ease-out;
+        }
+
+        @keyframes popScale {
+            0% { transform: scale(0.84); }
+            60% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 1. واجهة المسح الضوئي ==================== -->
+    <div id="scannerView">
+        <video id="cameraVideo" playsinline muted></video>
+
+        <div class="result-glass-card" id="resultCard">
+            <span id="resultText">قم بتثبيت الكاميرا نحو رمز الـ QR للمسح التلقائي</span>
+        </div>
+
+        <button id="openUrlBtn">فتح الرابط في المتصفح</button>
+
+        <div class="focus-frame" id="focusFrame">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+            <div class="laser-bar"></div>
+        </div>
+
+        <button id="scanImageBtn">مسح QR من صورة في الجهاز</button>
+        <input type="file" id="scanFileInput" accept="image/*" style="display:none">
+    </div>
+
+    <!-- ==================== 2. واجهة توليد الـ QR ==================== -->
+    <div id="generatorView">
+        <div class="qr-showcase-card" id="qrCard">
+            <canvas id="qrCanvas" width="512" height="512"></canvas>
+            <div id="qrPlaceholder">سيظهر رمز الـ QR هنا فور الكتابة أو رفع الملفات</div>
+        </div>
+
+        <div id="statusText">بانتظار إدخال نص أو اختيار صور / PDF...</div>
+
+        <div class="save-buttons-row">
+            <button class="save-btn save-png" id="savePngBtn">حفظ QR بصيغة PNG</button>
+            <button class="save-btn save-jpg" id="saveJpgBtn">حفظ QR بصيغة JPG</button>
+        </div>
+
+        <div class="input-wrapper">
+            <input type="text" id="qrInput" placeholder="اكتب نصاً، رابطاً، أو بريداً إلكترونياً..." autocomplete="off">
+        </div>
+
+        <button id="pickFilesBtn">اختيار صور أو ملف PDF وتحويلها إلى QR</button>
+        <input type="file" id="uploadFilesInput" accept="image/png,image/jpeg,image/webp,application/pdf" multiple style="display:none">
+    </div>
+
+    <!-- ==================== 3. زر التبديل السفلي ==================== -->
+    <button id="toggleModeBtn">الانتقال إلى إنشاء QR</button>
+
+    <script>
+        // مفاتيح الرفع
+        const IMGBB_API_KEY = "d6e15cb5b6c12b8e7157afee611aa441";
+
+        // عناصر الواجهة
+        const scannerView = document.getElementById('scannerView');
+        const generatorView = document.getElementById('generatorView');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const resultCard = document.getElementById('resultCard');
+        const resultText = document.getElementById('resultText');
+        const openUrlBtn = document.getElementById('openUrlBtn');
+        const focusFrame = document.getElementById('focusFrame');
+        const corners = document.querySelectorAll('.corner');
+
+        const scanImageBtn = document.getElementById('scanImageBtn');
+        const scanFileInput = document.getElementById('scanFileInput');
+
+        const qrCard = document.getElementById('qrCard');
+        const qrCanvas = document.getElementById('qrCanvas');
+        const qrPlaceholder = document.getElementById('qrPlaceholder');
+        const statusText = document.getElementById('statusText');
+        const qrInput = document.getElementById('qrInput');
+        const savePngBtn = document.getElementById('savePngBtn');
+        const saveJpgBtn = document.getElementById('saveJpgBtn');
+        const pickFilesBtn = document.getElementById('pickFilesBtn');
+        const uploadFilesInput = document.getElementById('uploadFilesInput');
+        const toggleModeBtn = document.getElementById('toggleModeBtn');
+
+        let isScanMode = true;
+        let lastScannedData = "";
+        let hasGeneratedQR = false;
+        let debounceTimer = null;
+        let videoStream = null;
+        const hiddenScanCanvas = document.createElement('canvas');
+        const hiddenScanCtx = hiddenScanCanvas.getContext('2d', { willReadFrequently: true });
+
+        // ==================== فحص البريد والروابط ====================
+        function extractValidEmail(text) {
+            if (!text) return null;
+            let trimmed = text.trim();
+            if (trimmed.toLowerCase().startsWith("mailto:")) {
+                trimmed = trimmed.substring(7).split('?')[0].trim();
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(trimmed) ? trimmed : null;
+        }
+
+        function isValidHttpUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === "http:" || url.protocol === "https:";
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function triggerPop(el) {
+            el.classList.remove('pop-anim');
+            void el.offsetWidth;
+            el.classList.add('pop-anim');
+        }
+
+        // ==================== تشغيل الكاميرا والمسح التلقائي ====================
+        async function startCamera() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+                cameraVideo.srcObject = videoStream;
+                await cameraVideo.play();
+                requestAnimationFrame(scanFrameLoop);
+            } catch (err) {
+                resultText.textContent = "تعذر تشغيل الكاميرا، يمكنك مسح QR من صورة في الجهاز";
+            }
+        }
+
+        function scanFrameLoop() {
+            if (isScanMode && cameraVideo.readyState === cameraVideo.HAVE_ENOUGH_DATA) {
+                hiddenScanCanvas.width = cameraVideo.videoWidth;
+                hiddenScanCanvas.height = cameraVideo.videoHeight;
+                hiddenScanCtx.drawImage(cameraVideo, 0, 0, hiddenScanCanvas.width, hiddenScanCanvas.height);
+
+                const imageData = hiddenScanCtx.getImageData(0, 0, hiddenScanCanvas.width, hiddenScanCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
+
+                if (code && code.data) {
+                    onQRCodeDetected(code.data);
+                }
+            }
+            requestAnimationFrame(scanFrameLoop);
+        }
+
+        function onQRCodeDetected(text) {
+            if (text === lastScannedData) return;
+            lastScannedData = text;
+
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            // وميض أخضر لإطار الكاميرا
+            corners.forEach(c => c.style.borderColor = "#10B981");
+            triggerPop(resultCard);
+            setTimeout(() => corners.forEach(c => c.style.borderColor = "#00F5D4"), 450);
+
+            const cleanMail = extractValidEmail(text);
+            if (cleanMail) {
+                resultText.textContent = cleanMail;
+                resultText.style.color = "#00F5D4";
+                openUrlBtn.textContent = "مراسلة البريد الآن";
+                openUrlBtn.style.background = "#FF3B7B";
+                openUrlBtn.style.display = "flex";
+                triggerPop(openUrlBtn);
+                window.location.href = "mailto:" + cleanMail;
+                return;
+            }
+
+            const isUrl = isValidHttpUrl(text);
+            resultText.textContent = text;
+            resultText.style.color = isUrl ? "#00F5D4" : "#F1F5F9";
+
+            if (isUrl) {
+                openUrlBtn.textContent = "فتح الرابط في المتصفح";
+                openUrlBtn.style.background = "#6C5CE7";
+                openUrlBtn.style.display = "flex";
+                triggerPop(openUrlBtn);
+            } else {
+                openUrlBtn.style.display = "none";
+            }
+        }
+
+        openUrlBtn.addEventListener('click', () => {
+            const cleanMail = extractValidEmail(lastScannedData);
+            if (cleanMail) {
+                window.location.href = "mailto:" + cleanMail;
+            } else if (isValidHttpUrl(lastScannedData)) {
+                window.open(lastScannedData, '_blank', 'noopener');
+            }
+        });
+
+        // ==================== مسح QR من صورة محفوظة في الجهاز ====================
+        scanImageBtn.addEventListener('click', () => scanFileInput.click());
+
+        scanFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const img = new Image();
+            img.onload = () => {
+                const maxDim = 1600;
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    const ratio = w / h;
+                    if (w > h) { w = maxDim; h = Math.round(maxDim / ratio); }
+                    else { h = maxDim; w = Math.round(maxDim * ratio); }
+                }
+
+                hiddenScanCanvas.width = w;
+                hiddenScanCanvas.height = h;
+                hiddenScanCtx.drawImage(img, 0, 0, w, h);
+
+                const imgData = hiddenScanCtx.getImageData(0, 0, w, h);
+                const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
+
+                if (code && code.data) {
+                    lastScannedData = "";
+                    onQRCodeDetected(code.data);
+                } else {
+                    resultText.style.color = "#FF3B7B";
+                    resultText.textContent = "لم يتم العثور على رمز QR واضح داخل هذه الصورة";
+                    openUrlBtn.style.display = "none";
+                    triggerPop(resultCard);
+                }
+                URL.revokeObjectURL(img.src);
+            };
+            img.src = URL.createObjectURL(file);
+            scanFileInput.value = "";
+        });
+
+        // ==================== توليد رمز الـ QR الفوري ====================
+        qrInput.addEventListener('input', () => {
+            const raw = qrInput.value.trim();
+            if (!raw) {
+                qrCanvas.style.display = "none";
+                qrPlaceholder.style.display = "block";
+                hasGeneratedQR = false;
+                statusText.style.color = "#94A3B8";
+                statusText.textContent = "بانتظار إدخال نص أو اختيار صور / PDF...";
+                return;
+            }
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const cleanMail = extractValidEmail(raw);
+                const payload = cleanMail ? ("mailto:" + cleanMail) : raw;
+
+                renderQRToCanvas(payload);
+
+                statusText.style.color = cleanMail ? "#FF3B7B" : "#00F5D4";
+                statusText.textContent = cleanMail
+                    ? "تم تجهيز رمز البريد المباشر!"
+                    : "تم توليد رمز الـ QR بنجاح!";
+            }, 220);
+        });
+
+        function renderQRToCanvas(textToEncode) {
+            QRCode.toCanvas(qrCanvas, textToEncode, {
+                width: 512,
+                margin: 1,
+                color: { dark: "#000000", light: "#FFFFFF" }
+            }, (error) => {
+                if (!error) {
+                    qrPlaceholder.style.display = "none";
+                    qrCanvas.style.display = "block";
+                    hasGeneratedQR = true;
+                    triggerPop(qrCard);
+                }
+            });
+        }
+
+        // ==================== حفظ الـ QR بصيغة PNG أو JPG ====================
+        function downloadQR(asPng) {
+            if (!hasGeneratedQR) {
+                statusText.style.color = "#FF3B7B";
+                statusText.textContent = "لا يوجد رمز QR لحفظه حالياً!";
+                return;
+            }
+
+            const ext = asPng ? "png" : "jpg";
+            const mime = asPng ? "image/png" : "image/jpeg";
+            const dataUrl = qrCanvas.toDataURL(mime, 0.95);
+
+            const a = document.createElement('a');
+            const now = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+            a.download = `QR_${now}.${ext}`;
+            a.href = dataUrl;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            statusText.style.color = "#10B981";
+            statusText.textContent = `تم حفظ الرمز بصيغة ${ext.toUpperCase()} في الجهاز بنجاح!`;
+        }
+
+        savePngBtn.addEventListener('click', () => downloadQR(true));
+        saveJpgBtn.addEventListener('click', () => downloadQR(false));
+
+        // ==================== دمج ورفع عدة صور أو ملف PDF في QR واحد ====================
+        pickFilesBtn.addEventListener('click', () => uploadFilesInput.click());
+
+        uploadFilesInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+
+            const pdfFiles = files.filter(f => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
+            const imageFiles = files.filter(f => f.type.startsWith("image/"));
+
+            let uploadedUrl = null;
+
+            try {
+                if (pdfFiles.length > 0) {
+                    statusText.style.color = "#00F5D4";
+                    statusText.textContent = "جاري رفع ملف الـ PDF وتوليد الرمز...";
+                    uploadedUrl = await uploadGeneralFile(pdfFiles[0]);
+                } else if (imageFiles.length === 1) {
+                    statusText.style.color = "#00F5D4";
+                    statusText.textContent = "جاري ضغط ورفع الصورة...";
+                    const singleBlob = await combineImagesVertically([imageFiles[0]], 1000);
+                    uploadedUrl = await uploadImageBlob(singleBlob);
+                } else if (imageFiles.length > 1) {
+                    statusText.style.color = "#00F5D4";
+                    statusText.textContent = `جاري دمج ${imageFiles.length} صور في رمز QR واحد...`;
+                    const mergedBlob = await combineImagesVertically(imageFiles, 900);
+                    statusText.textContent = "جاري رفع الصور المدمجة وتوليد الرمز...";
+                    uploadedUrl = await uploadImageBlob(mergedBlob);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+
+            if (uploadedUrl) {
+                qrInput.value = uploadedUrl;
+                renderQRToCanvas(uploadedUrl);
+                statusText.style.color = "#10B981";
+                statusText.textContent = "تم الرفع وتوليد رمز الـ QR بنجاح!";
+            } else {
+                statusText.style.color = "#FF3B7B";
+                statusText.textContent = "فشل الرفع، تحقق من اتصالك بالإنترنت";
+            }
+
+            uploadFilesInput.value = "";
+        });
+
+        // دمج صورة أو عدة صور عمودياً في صفحة واحدة عالية الدقة
+        function combineImagesVertically(files, targetWidth = 900) {
+            return new Promise((resolve, reject) => {
+                const loadedImages = [];
+                let count = 0;
+
+                files.forEach((file, index) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        loadedImages[index] = img;
+                        count++;
+                        if (count === files.length) {
+                            const spacing = loadedImages.length > 1 ? 14 : 0;
+                            let totalHeight = 0;
+                            const heights = loadedImages.map(im => {
+                                const h = Math.max(1, Math.round(targetWidth * (im.height / im.width)));
+                                totalHeight += h;
+                                return h;
+                            });
+                            totalHeight += spacing * (loadedImages.length - 1);
+
+                            const mergeCanvas = document.createElement('canvas');
+                            mergeCanvas.width = targetWidth;
+                            mergeCanvas.height = totalHeight;
+                            const ctx = mergeCanvas.getContext('2d');
+
+                            ctx.fillStyle = "#0E1422";
+                            ctx.fillRect(0, 0, targetWidth, totalHeight);
+
+                            let y = 0;
+                            loadedImages.forEach((im, idx) => {
+                                ctx.drawImage(im, 0, y, targetWidth, heights[idx]);
+                                y += heights[idx] + spacing;
+                                URL.revokeObjectURL(im.src);
+                            });
+
+                            mergeCanvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.82);
+                        }
+                    };
+                    img.onerror = reject;
+                    img.src = URL.createObjectURL(file);
+                });
+            });
+        }
+
+        // رفع الصور إلى ImgBB ثم بديل تلقائي
+        async function uploadImageBlob(blob) {
+            try {
+                const formData = new FormData();
+                formData.append("key", IMGBB_API_KEY);
+                formData.append("image", blob, "merged.jpg");
+
+                const res = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: formData });
+                const json = await res.json();
+                if (json && json.data && json.data.url) return json.data.url;
+            } catch (_) {}
+
+            return await uploadGeneralFile(new File([blob], "images.jpg", { type: "image/jpeg" }));
+        }
+
+        // رفع ملفات الـ PDF والملفات العامة مع بدائل متعددة تدعم المتصفح
+        async function uploadGeneralFile(file) {
+            // 1. المحاولة الأولى: Tmpfiles.org API (يدعم CORS في المتصفح والـ PDF المباشر)
+            try {
+                const form1 = new FormData();
+                form1.append("file", file);
+                const res1 = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body: form1 });
+                const json1 = await res1.json();
+                if (json1 && json1.data && json1.data.url) {
+                    return json1.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+                }
+            } catch (_) {}
+
+            // 2. المحاولة الثانية: Litterbox Catbox
+            try {
+                const form2 = new FormData();
+                form2.append("reqtype", "fileupload");
+                form2.append("time", "72h");
+                form2.append("fileToUpload", file);
+                const res2 = await fetch("https://litterbox.catbox.moe/resources/internals/api.php", { method: "POST", body: form2 });
+                const txt2 = (await res2.text()).trim();
+                if (txt2.startsWith("http")) return txt2;
+            } catch (_) {}
+
+            return null;
+        }
+
+        // ==================== التبديل بين وضع الماسح ووضع التوليد ====================
+        toggleModeBtn.addEventListener('click', () => {
+            isScanMode = !isScanMode;
+            if (isScanMode) {
+                generatorView.classList.remove('active');
+                toggleModeBtn.textContent = "الانتقال إلى إنشاء QR";
+                toggleModeBtn.style.background = "#6C5CE7";
+                lastScannedData = "";
+                resultText.textContent = "قم بتثبيت الكاميرا نحو رمز الـ QR للمسح التلقائي";
+                resultText.style.color = "#F1F5F9";
+                openUrlBtn.style.display = "none";
+                if (cameraVideo.paused && videoStream) cameraVideo.play();
+            } else {
+                generatorView.classList.add('active');
+                toggleModeBtn.textContent = "العودة إلى الماسح الضوئي";
+                toggleModeBtn.style.background = "#FF3B7B";
+                if (!cameraVideo.paused) cameraVideo.pause();
+            }
+        });
+
+        // بدء تشغيل الكاميرا عند فتح الموقع
+        window.addEventListener('DOMContentLoaded', startCamera);
+    </script>
+</body>
+</html>
