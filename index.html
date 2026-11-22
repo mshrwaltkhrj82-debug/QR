@@ -205,7 +205,6 @@
             pointer-events: none;
         }
 
-        /* بطاقة النتيجة الممسوحة */
         .scan-hud {
             width: min(92%, 520px);
             display: flex;
@@ -280,7 +279,6 @@
         #copyScanBtn { background: var(--bg-secondary); border-color: var(--accent); color: var(--accent); }
         #resetScanBtn { background: rgba(244, 63, 94, 0.85); }
 
-        /* مربع التركيز والليزر */
         .scanner-frame-wrap {
             position: relative;
             z-index: 4;
@@ -325,7 +323,6 @@
             50% { top: 88%; }
         }
 
-        /* أدوات التحكم بالكاميرا */
         .cam-dock {
             width: min(90%, 400px);
             display: flex;
@@ -923,7 +920,7 @@
 
                     <div class="template-tabs" id="templateTabs">
                         <button class="tpl-tab active" data-tpl="text">🔗 نص / رابط</button>
-                        <button class="tpl-tab" data-tpl="files">📁 صور / PDF</button>
+                        <button class="tpl-tab" data-tpl="files">📄 صور إلى PDF</button>
                         <button class="tpl-tab" data-tpl="wifi">📶 شبكة Wi-Fi</button>
                         <button class="tpl-tab" data-tpl="whatsapp">💬 واتساب</button>
                         <button class="tpl-tab" data-tpl="email">✉️ بريد إلكتروني</button>
@@ -935,11 +932,11 @@
                         <textarea class="std-textarea" id="inputText" placeholder="اكتب نصاً، رابط موقع، أو أي معلومة..."></textarea>
                     </div>
 
-                    <!-- قالب 2: رفع صور أو PDF -->
+                    <!-- قالب 2: تحويل الصور إلى PDF أو رفع PDF -->
                     <div class="tpl-form" id="form-files">
                         <div class="upload-zone" id="uploadTriggerZone">
-                            <h4>اضغط لاختيار عدة صور أو ملف PDF</h4>
-                            <p>يتم دمج الصور تلقائياً أو رفع الـ PDF وتحويله إلى رمز QR واحد</p>
+                            <h4>اضغط لاختيار صور أو ملف PDF</h4>
+                            <p>يتم تحويل الصور تلقائياً إلى ملف PDF متعدد الصفحات وتوليد رمز QR له</p>
                         </div>
                         <div class="progress-track" id="uploadProgressTrack">
                             <div class="progress-bar" id="uploadProgressBar"></div>
@@ -1031,8 +1028,6 @@
     </nav>
 
     <script>
-        const IMGBB_API_KEY = "d6e15cb5b6c12b8e7157afee611aa441";
-
         // عناصر النظام العامة
         const toastBox = document.getElementById('toastBox');
         const soundToggleBtn = document.getElementById('soundToggleBtn');
@@ -1187,7 +1182,7 @@
             return str.replace(/\\([\\;,:"])/g, '$1');
         }
 
-        async function fetchWithTimeout(url, options = {}, timeoutMs = 25000) {
+        async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeoutMs);
             try {
@@ -1398,7 +1393,6 @@
                 lastScanCheck = ts;
                 scanTick++;
 
-                // 1. المسح السريع عبر المحرك المدمج بالمتصفح (إن وجد)
                 if (barcodeDetector && !isDetectingNative) {
                     isDetectingNative = true;
                     barcodeDetector.detect(cameraVideo)
@@ -1412,7 +1406,6 @@
                         .finally(() => { isDetectingNative = false; });
                 }
 
-                // 2. المسح الاحتياطي الدقيق عبر jsQR (بالتناوب بين مربع المنتصف والإطار الكامل)
                 if (typeof jsQR === "function") {
                     const vw = cameraVideo.videoWidth;
                     const vh = cameraVideo.videoHeight;
@@ -1442,7 +1435,6 @@
             scanLoopId = requestAnimationFrame(scanFrameLoop);
         }
 
-        // تحليل ذكي لمحتوى الـ QR الممسوح
         function parseScannedPayload(raw) {
             const lower = raw.toLowerCase();
             if (lower.startsWith("http://") || lower.startsWith("https://")) {
@@ -1531,7 +1523,6 @@
             scanActionRow.style.display = "none";
         });
 
-        // مسح من صورة في المعرض
         scanGalleryBtn.addEventListener('click', () => scanFileInput.click());
 
         scanFileInput.addEventListener('change', (e) => {
@@ -1875,7 +1866,7 @@
             }, "image/png");
         });
 
-        // ==================== دمج الصور ورفع الـ PDF ====================
+        // ==================== تحويل الصور إلى PDF ورفع الملفات ====================
         uploadTriggerZone.addEventListener('click', () => {
             if (!isUploading) uploadFilesInput.click();
         });
@@ -1917,7 +1908,7 @@
             isUploading = true;
             uploadTriggerZone.classList.add('disabled');
             uploadProgressTrack.style.display = "block";
-            uploadProgressBar.style.width = "25%";
+            uploadProgressBar.style.width = "15%";
             genStatusText.style.color = "var(--accent)";
 
             let uploadedUrl = null;
@@ -1925,15 +1916,22 @@
             try {
                 if (pdfFiles.length > 0) {
                     genStatusText.textContent = "جاري رفع ملف الـ PDF وتوليد الرمز...";
-                    uploadProgressBar.style.width = "60%";
+                    uploadProgressBar.style.width = "55%";
                     uploadedUrl = await uploadGeneralFile(pdfFiles[0]);
                 } else if (imgFiles.length > 0) {
                     genStatusText.textContent = imgFiles.length > 1
-                        ? `جاري دمج ${imgFiles.length} صور ورفعها...`
-                        : "جاري تحسين ورفع الصورة...";
-                    const mergedBlob = await combineImagesVertically(imgFiles, 950);
-                    uploadProgressBar.style.width = "65%";
-                    uploadedUrl = await uploadImageBlob(mergedBlob);
+                        ? `جاري تحويل ${imgFiles.length} صور إلى ملف PDF...`
+                        : "جاري تحويل الصورة إلى ملف PDF...";
+
+                    const pdfBlob = await convertImagesToPdfBlob(imgFiles, (done, total) => {
+                        const pct = 15 + Math.round((done / total) * 45);
+                        uploadProgressBar.style.width = pct + "%";
+                    });
+
+                    genStatusText.textContent = "جاري رفع ملف الـ PDF وتوليد رمز الـ QR...";
+                    uploadProgressBar.style.width = "70%";
+                    const pdfFile = new File([pdfBlob], `QR_Document_${Date.now()}.pdf`, { type: "application/pdf" });
+                    uploadedUrl = await uploadGeneralFile(pdfFile);
                 }
             } catch (_) {}
 
@@ -1947,116 +1945,146 @@
 
             if (uploadedUrl) {
                 renderStyledQR(uploadedUrl);
-                saveToHistory("توليد ملف", "رابط ملف", uploadedUrl, uploadedUrl);
-                showToast("تم رفع الملف وتوليد الـ QR بنجاح ✓");
+                saveToHistory("توليد ملف", "ملف PDF", uploadedUrl, uploadedUrl);
+                showToast("تم إنشاء ورفع ملف الـ PDF وتوليد الـ QR بنجاح ✓");
             } else {
                 genStatusText.style.color = "#F43F5E";
                 genStatusText.textContent = "تعذر الرفع، تحقق من الإنترنت وحاول مجدداً";
             }
         }
 
-        function combineImagesVertically(files, baseWidth = 950) {
+        function imageFileToJpegPage(file, maxDim = 1600) {
             return new Promise((resolve, reject) => {
-                const loaded = [];
-                const objectUrls = [];
-                let count = 0;
-                let failed = false;
+                const img = new Image();
+                const objUrl = URL.createObjectURL(file);
 
-                const cleanup = () => {
-                    objectUrls.forEach(u => URL.revokeObjectURL(u));
+                img.onload = () => {
+                    try {
+                        let w = img.naturalWidth || img.width;
+                        let h = img.naturalHeight || img.height;
+                        if (w > maxDim || h > maxDim) {
+                            const ratio = Math.min(maxDim / w, maxDim / h);
+                            w = Math.max(1, Math.round(w * ratio));
+                            h = Math.max(1, Math.round(h * ratio));
+                        }
+
+                        const c = document.createElement('canvas');
+                        c.width = w;
+                        c.height = h;
+                        const ctx = c.getContext('2d');
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        URL.revokeObjectURL(objUrl);
+
+                        c.toBlob(async (blob) => {
+                            if (!blob) {
+                                reject(new Error("JPEG conversion failed"));
+                                return;
+                            }
+                            const buf = await blob.arrayBuffer();
+                            resolve({ width: w, height: h, bytes: new Uint8Array(buf) });
+                        }, "image/jpeg", 0.85);
+                    } catch (err) {
+                        URL.revokeObjectURL(objUrl);
+                        reject(err);
+                    }
                 };
 
-                files.forEach((file, idx) => {
-                    const img = new Image();
-                    const objUrl = URL.createObjectURL(file);
-                    objectUrls.push(objUrl);
+                img.onerror = () => {
+                    URL.revokeObjectURL(objUrl);
+                    reject(new Error("Image load failed"));
+                };
 
-                    img.onload = () => {
-                        if (failed) return;
-                        loaded[idx] = img;
-                        count++;
-                        if (count === files.length) {
-                            let targetWidth = baseWidth;
-                            const gap = loaded.length > 1 ? 14 : 0;
-                            let rawHeight = gap * (loaded.length - 1);
-                            loaded.forEach(im => rawHeight += Math.round(targetWidth * (im.height / im.width)));
-
-                            if (rawHeight > 4000) {
-                                targetWidth = Math.max(360, Math.floor(targetWidth * (4000 / rawHeight)));
-                            }
-
-                            const maxPixels = 12000000;
-                            let estHeight = gap * (loaded.length - 1);
-                            loaded.forEach(im => estHeight += Math.round(targetWidth * (im.height / im.width)));
-                            if (targetWidth * estHeight > maxPixels) {
-                                const ratio = Math.sqrt(maxPixels / (targetWidth * estHeight));
-                                targetWidth = Math.max(320, Math.floor(targetWidth * ratio));
-                            }
-
-                            let totalH = 0;
-                            const heights = loaded.map(im => {
-                                const h = Math.max(1, Math.round(targetWidth * (im.height / im.width)));
-                                totalH += h;
-                                return h;
-                            });
-                            totalH += gap * (loaded.length - 1);
-
-                            const c = document.createElement('canvas');
-                            c.width = targetWidth;
-                            c.height = totalH;
-                            const ctx = c.getContext('2d');
-                            ctx.fillStyle = "#070B14";
-                            ctx.fillRect(0, 0, targetWidth, totalH);
-
-                            let y = 0;
-                            loaded.forEach((im, i) => {
-                                ctx.drawImage(im, 0, y, targetWidth, heights[i]);
-                                y += heights[i] + gap;
-                            });
-
-                            cleanup();
-                            c.toBlob(b => b ? resolve(b) : reject(new Error("Blob failed")), "image/jpeg", 0.84);
-                        }
-                    };
-
-                    img.onerror = () => {
-                        if (failed) return;
-                        failed = true;
-                        cleanup();
-                        reject(new Error("Image load failed"));
-                    };
-
-                    img.src = objUrl;
-                });
+                img.src = objUrl;
             });
         }
 
-        async function uploadImageBlob(blob) {
-            const imgFile = new File([blob], "qr_merged.jpg", { type: "image/jpeg" });
+        // محرك بناء PDF 1.4 متعدد الصفحات بدون مكتبات خارجية
+        async function convertImagesToPdfBlob(files, onProgress) {
+            const pages = [];
+            for (let i = 0; i < files.length; i++) {
+                const page = await imageFileToJpegPage(files[i], 1600);
+                pages.push(page);
+                if (typeof onProgress === "function") onProgress(i + 1, files.length);
+            }
 
-            // 1. الرفع على سيرفرات تعمل على 4G وسفاري بدون i.ibb.co
-            const directUrl = await uploadGeneralFile(imgFile);
-            if (directUrl) return directUrl;
+            const enc = new TextEncoder();
+            const chunks = [];
+            let offset = 0;
 
-            // 2. خيار احتياطي أخير مع تفضيل رابط العرض بدلاً من i.ibb.co
-            try {
-                const fd = new FormData();
-                fd.append("key", IMGBB_API_KEY);
-                fd.append("image", blob, "qr_merged.jpg");
-                const res = await fetchWithTimeout("https://api.imgbb.com/1/upload", { method: "POST", body: fd });
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json && json.data) {
-                        return json.data.url_viewer || json.data.url || null;
-                    }
-                }
-            } catch (_) {}
+            const pushBytes = (u8) => {
+                chunks.push(u8);
+                offset += u8.length;
+            };
+            const pushStr = (str) => pushBytes(enc.encode(str));
 
-            return null;
+            const totalObjs = 3 + pages.length * 3;
+            const offsets = new Array(totalObjs).fill(0);
+
+            // ترويسة PDF
+            pushStr("%PDF-1.4\n");
+            pushBytes(new Uint8Array([0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A]));
+
+            // الكائن 1: الفهرس الرئيسي
+            offsets[1] = offset;
+            pushStr("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+
+            // الكائن 2: شجرة الصفحات
+            const kidsRef = pages.map((_, i) => `${3 + i * 3} 0 R`).join(" ");
+            offsets[2] = offset;
+            pushStr(`2 0 obj\n<< /Type /Pages /Kids [${kidsRef}] /Count ${pages.length} >>\nendobj\n`);
+
+            // إضافة كل صورة كصفحة مستقلة متناسبة الأبعاد
+            for (let i = 0; i < pages.length; i++) {
+                const p = pages[i];
+                const pageId = 3 + i * 3;
+                const imgId = 4 + i * 3;
+                const contentId = 5 + i * 3;
+
+                const ptW = p.width >= p.height ? 841.89 : 595.28;
+                const ptH = Number((ptW * (p.height / p.width)).toFixed(2));
+
+                offsets[pageId] = offset;
+                pushStr(
+                    `${pageId} 0 obj\n` +
+                    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${ptW} ${ptH}] ` +
+                    `/Resources << /XObject << /Im0 ${imgId} 0 R >> >> /Contents ${contentId} 0 R >>\n` +
+                    `endobj\n`
+                );
+
+                offsets[imgId] = offset;
+                pushStr(
+                    `${imgId} 0 obj\n` +
+                    `<< /Type /XObject /Subtype /Image /Width ${p.width} /Height ${p.height} ` +
+                    `/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.bytes.length} >>\n` +
+                    `stream\n`
+                );
+                pushBytes(p.bytes);
+                pushStr("\nendstream\nendobj\n");
+
+                const contentStr = `q\n${ptW} 0 0 ${ptH} 0 0 cm\n/Im0 Do\nQ\n`;
+                const contentBytes = enc.encode(contentStr);
+                offsets[contentId] = offset;
+                pushStr(`${contentId} 0 obj\n<< /Length ${contentBytes.length} >>\nstream\n`);
+                pushBytes(contentBytes);
+                pushStr("endstream\nendobj\n");
+            }
+
+            // جدول الإزاحات xref والخاتمة
+            const xrefOffset = offset;
+            pushStr(`xref\n0 ${totalObjs}\n0000000000 65535 f \n`);
+            for (let id = 1; id < totalObjs; id++) {
+                pushStr(String(offsets[id]).padStart(10, "0") + " 00000 n \n");
+            }
+            pushStr(`trailer\n<< /Size ${totalObjs} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+
+            return new Blob(chunks, { type: "application/pdf" });
         }
 
         async function uploadGeneralFile(file) {
-            // 1. gofile.io (الأكثر استقراراً للصور والـ PDF على شبكات الجوال)
+            // 1. gofile.io (الأكثر استقراراً لملفات الـ PDF على شبكات الجوال وسفاري)
             try {
                 const fd1 = new FormData();
                 fd1.append("file", file);
