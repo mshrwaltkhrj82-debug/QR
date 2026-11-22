@@ -1030,9 +1030,11 @@
                         <div class="field-row">
                             <input type="text" class="std-input" id="wifiPass" placeholder="كلمة المرور">
                             <select class="std-select" id="wifiEnc">
-                                <option value="WPA">WPA/WPA2</option>
+                                <option value="WPA2/WPA3" selected>WPA2/WPA3</option>
+                                <option value="WPA3">WPA3</option>
+                                <option value="WPA">WPA</option>
                                 <option value="WEP">WEP</option>
-                                <option value="nopass">بدون كلمة مرور</option>
+                                <option value="nopass">لا شيء (بدون كلمة مرور)</option>
                             </select>
                         </div>
                     </div>
@@ -1246,7 +1248,6 @@
             let maxV = -Infinity;
 
             if (mode === "dist") {
-                // حساب متوسط لون الحواف لفصل أي لونين عن بعضهما (مثل أحمر على أزرق أو أخضر على أصفر)
                 let bgR = 0, bgG = 0, bgB = 0, samples = 0;
                 const stepX = Math.max(1, Math.floor(w / 18));
                 const stepY = Math.max(1, Math.floor(h / 18));
@@ -1444,7 +1445,13 @@
             }
 
             if (IS_IOS) {
-                const encType = enc === "WEP" ? "WEP" : (enc === "nopass" || !pass ? "None" : "WPA2");
+                // في أنظمة Apple قيمة WPA2 تدعم شبكات WPA2 و WPA2/WPA3 تلقائياً، وقيمة WPA3 لشبكات WPA3 فقط
+                const encType = enc === "WEP"
+                    ? "WEP"
+                    : (enc === "nopass" || !pass)
+                        ? "None"
+                        : (enc === "WPA3" ? "WPA3" : "WPA2");
+
                 const payloadUUID = makeUUID();
                 const rootUUID = makeUUID();
                 const passBlock = encType !== "None"
@@ -1755,7 +1762,6 @@
             return hiddenCtx.getImageData(0, 0, outW, outH);
         }
 
-        // دورة المسح السريع (تقرأ الأسود العادي والملون بأي لون)
         const LIVE_COLOR_MODES = [null, null, "sat", "b", "r", "g", "dist"];
 
         function scanFrameLoop(ts) {
@@ -1788,14 +1794,12 @@
 
                     try {
                         if (phase === 0) {
-                            // مسح الإطار الكامل للرموز العادية
                             const scale = Math.min(1, 780 / Math.max(vw, vh));
                             const outW = Math.max(1, Math.round(vw * scale));
                             const outH = Math.max(1, Math.round(vh * scale));
                             const imgData = captureVideoRegion(0, 0, vw, vh, outW, outH);
                             foundText = decodeAnyColorImageData(imgData, false, null);
                         } else {
-                            // مسح مربع المنتصف بدقة عالية + قنوات الألوان المختلفة
                             const cropSide = Math.round(Math.min(vw, vh) * 0.76);
                             const sx = Math.round((vw - cropSide) / 2);
                             const sy = Math.round((vh - cropSide) / 2);
@@ -1881,14 +1885,19 @@
                 const passMatch = raw.match(/(?:^|[^\\]);P:((?:\\.|[^;])*)/i);
                 const typeMatch = raw.match(/(?:^|[^\\]);?T:((?:\\.|[^;])*)/i);
                 const hiddenMatch = raw.match(/(?:^|[^\\]);H:(true|false)/i);
+                const rMatch = raw.match(/(?:^|[^\\]);R:([0-9]+)/i);
 
                 const ssid = ssidMatch && ssidMatch[1] ? unescapeWifiValue(ssidMatch[1]) : "";
                 const pass = passMatch && passMatch[1] ? unescapeWifiValue(passMatch[1]) : "";
-                const enc = typeMatch && typeMatch[1] ? typeMatch[1].toUpperCase() : (pass ? "WPA" : "nopass");
+                const rawType = typeMatch && typeMatch[1] ? typeMatch[1].toUpperCase() : (pass ? "WPA" : "NOPASS");
+                const isWpa3Only = rawType === "WPA3" || rawType === "SAE" || (rMatch && rMatch[1] === "1");
+                const enc = isWpa3Only
+                    ? "WPA3"
+                    : (rawType === "WEP" ? "WEP" : ((rawType === "NOPASS" || !pass) ? "nopass" : "WPA2/WPA3"));
                 const hidden = hiddenMatch ? hiddenMatch[1].toLowerCase() === "true" : false;
 
                 return {
-                    type: "واي فاي",
+                    type: enc === "WPA3" ? "واي فاي (WPA3)" : (enc === "WPA2/WPA3" ? "واي فاي (WPA2/WPA3)" : "واي فاي"),
                     display: `الشبكة: ${ssid || "غير معروف"} | الرمز: ${pass || "بدون كلمة مرور"}`,
                     copyValue: pass || ssid,
                     copyLabel: pass ? "نسخ الرمز" : "نسخ الاسم",
@@ -2014,7 +2023,6 @@
             scanActionRow.style.display = "none";
         });
 
-        // مسح من صورة في المعرض (يدعم جميع الألوان)
         scanGalleryBtn.addEventListener('click', () => scanFileInput.click());
 
         scanFileInput.addEventListener('change', (e) => {
@@ -2133,9 +2141,16 @@
                 if (ssid) {
                     const safeSsid = escapeWifiValue(ssid);
                     const safePass = enc === "nopass" ? "" : escapeWifiValue(pass);
-                    payload = enc === "nopass"
-                        ? `WIFI:T:nopass;S:${safeSsid};P:;;`
-                        : `WIFI:T:${enc};S:${safeSsid};P:${safePass};;`;
+                    if (enc === "nopass") {
+                        payload = `WIFI:T:nopass;S:${safeSsid};;`;
+                    } else if (enc === "WPA3") {
+                        payload = `WIFI:T:WPA;R:1;S:${safeSsid};P:${safePass};;`;
+                    } else if (enc === "WEP") {
+                        payload = `WIFI:T:WEP;S:${safeSsid};P:${safePass};;`;
+                    } else {
+                        // WPA2/WPA3 و WPA تستخدمان T:WPA وفق المعيار الرسمي لرموز Wi-Fi QR
+                        payload = `WIFI:T:WPA;S:${safeSsid};P:${safePass};;`;
+                    }
                 }
             } else if (currentTemplate === "whatsapp") {
                 const phone = document.getElementById('waPhone').value.replace(/[^0-9]/g, '').replace(/^00/, '');
