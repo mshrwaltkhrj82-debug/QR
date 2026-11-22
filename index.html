@@ -20,7 +20,7 @@
         :root {
             --bg-main: #070B14;
             --bg-secondary: #0F172A;
-            --glass-surface: rgba(15, 23, 42, 0.86);
+            --glass-surface: rgba(15, 23, 42, 0.85);
             --glass-border: rgba(255, 255, 255, 0.1);
             --primary: #6366F1;
             --primary-glow: rgba(99, 102, 241, 0.45);
@@ -35,7 +35,7 @@
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -45,16 +45,11 @@
             user-select: none;
         }
 
-        html, body {
+        html {
             width: 100%;
-            max-width: 100%;
             height: 100%;
             overflow: hidden;
-            position: fixed;
-            inset: 0;
-            overscroll-behavior: none;
             -webkit-text-size-adjust: 100%;
-            touch-action: manipulation;
         }
 
         body {
@@ -63,39 +58,48 @@
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.14) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(0, 245, 212, 0.1) 0px, transparent 50%);
             color: var(--text-primary);
-            height: 100dvh;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            touch-action: manipulation;
         }
 
         /* ==================== إشعارات النظام العائمة (Toast) ==================== */
         #toastBox {
             position: fixed;
             top: calc(14px + var(--safe-top));
-            left: 50%;
-            transform: translateX(-50%) translateY(-120px);
+            left: 16px;
+            right: 16px;
+            margin: 0 auto;
+            width: fit-content;
+            max-width: calc(100vw - 32px);
+            transform: translateY(-130px);
             background: rgba(15, 23, 42, 0.96);
             border: 1.5px solid var(--accent);
             color: var(--text-primary);
-            padding: 10px 20px;
+            padding: 9px 18px;
             border-radius: 999px;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             font-weight: 700;
             z-index: 9999;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65);
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             pointer-events: none;
-            max-width: 92vw;
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         #toastBox.show {
-            transform: translateX(-50%) translateY(0);
+            transform: translateY(0);
         }
 
         /* ==================== الشريط العلوي ==================== */
@@ -123,6 +127,7 @@
             background: linear-gradient(90deg, #FFFFFF, var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            min-width: 0;
         }
 
         .brand-badge {
@@ -134,6 +139,7 @@
             border: 1px solid var(--primary);
             color: #C7D2FE;
             -webkit-text-fill-color: #C7D2FE;
+            flex-shrink: 0;
         }
 
         .sound-toggle {
@@ -154,32 +160,33 @@
         /* ==================== حاوية الصفحات ==================== */
         .views-container {
             flex: 1;
-            min-height: 0;
-            width: 100%;
             position: relative;
             overflow: hidden;
+            width: 100%;
+            min-height: 0;
         }
 
         .view-page {
             position: absolute;
             inset: 0;
             width: 100%;
-            max-width: 100%;
             height: 100%;
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-y: contain;
             touch-action: pan-y;
-            padding-bottom: calc(96px + var(--safe-bottom));
+            padding-bottom: calc(92px + var(--safe-bottom));
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease;
+            transform: scale(0.985);
+            transition: opacity 0.22s ease, transform 0.22s ease;
         }
 
         .view-page.active {
             opacity: 1;
             pointer-events: auto;
+            transform: scale(1);
             z-index: 5;
         }
 
@@ -189,7 +196,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 0 calc(86px + var(--safe-bottom));
+            padding: 12px 14px calc(86px + var(--safe-bottom));
             gap: 10px;
             overflow: hidden;
             touch-action: none;
@@ -220,7 +227,8 @@
         }
 
         .scan-hud {
-            width: min(92%, 520px);
+            width: 100%;
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -232,15 +240,15 @@
         .scan-result-box {
             background: var(--glass-surface);
             border: 1.5px solid rgba(0, 245, 212, 0.35);
-            border-radius: 16px;
-            padding: 10px 14px;
+            border-radius: 18px;
+            padding: 11px 14px;
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             text-align: center;
             transition: all 0.25s ease;
         }
@@ -256,12 +264,12 @@
         }
 
         #resultText {
-            font-size: 0.92rem;
+            font-size: 0.94rem;
             font-weight: 700;
             color: var(--text-primary);
             word-break: break-word;
             overflow-wrap: anywhere;
-            max-height: 76px;
+            max-height: 74px;
             overflow-y: auto;
             -webkit-user-select: text;
             user-select: text;
@@ -279,13 +287,13 @@
             padding: 0 14px;
             border-radius: 999px;
             border: 1px solid rgba(255, 255, 255, 0.18);
-            font-size: 0.82rem;
+            font-size: 0.83rem;
             font-weight: 700;
             color: #fff;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
         }
 
@@ -338,7 +346,8 @@
         }
 
         .cam-dock {
-            width: min(92%, 400px);
+            width: 100%;
+            max-width: 400px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -380,7 +389,7 @@
             flex: 1;
             min-width: 0;
             height: 44px;
-            border-radius: 13px;
+            border-radius: 14px;
             border: 1px solid var(--glass-border);
             background: var(--glass-surface);
             backdrop-filter: blur(12px);
@@ -407,34 +416,30 @@
             color: var(--amber);
         }
 
-        /* ==================== 2. صفحة استوديو التوليد (متوافقة 100% مع الشاشة) ==================== */
+        /* ==================== 2. صفحة استوديو التوليد الاحترافي ==================== */
         #generatorView {
-            padding: 12px 12px calc(110px + var(--safe-bottom));
+            padding: 14px 12px calc(96px + var(--safe-bottom));
         }
 
         .studio-grid {
             width: 100%;
-            max-width: 100%;
+            max-width: 960px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 14px;
         }
 
         @media (min-width: 820px) {
             .studio-grid {
-                max-width: 960px;
-                display: grid;
-                grid-template-columns: 340px minmax(0, 1fr);
+                grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
                 align-items: start;
-                gap: 16px;
             }
         }
 
         .preview-panel {
+            min-width: 0;
             width: 100%;
-            max-width: 100%;
-            overflow: hidden;
             background: var(--glass-surface);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
@@ -442,19 +447,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
         }
 
         .canvas-container {
-            width: min(50vw, 196px);
-            height: min(50vw, 196px);
+            width: min(54vw, 210px);
+            height: min(54vw, 210px);
             background: #FFFFFF;
             border-radius: 16px;
-            padding: 8px;
+            padding: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
             position: relative;
             overflow: hidden;
             transition: background-color 0.2s ease;
@@ -463,13 +468,13 @@
         #qrCanvas {
             width: 100% !important;
             height: 100% !important;
-            border-radius: 8px;
+            border-radius: 10px;
             display: none;
         }
 
         #qrPlaceholder {
             color: #475569;
-            font-size: 0.82rem;
+            font-size: 0.83rem;
             font-weight: 700;
             text-align: center;
             padding: 10px;
@@ -477,7 +482,7 @@
         }
 
         #genStatusText {
-            margin-top: 8px;
+            margin-top: 10px;
             font-size: 0.82rem;
             font-weight: 700;
             color: var(--text-secondary);
@@ -490,14 +495,14 @@
         .export-bar {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px;
+            gap: 7px;
             width: 100%;
             margin-top: 10px;
         }
 
         .exp-btn {
-            width: 100%;
             min-width: 0;
+            width: 100%;
             height: 40px;
             border-radius: 11px;
             border: none;
@@ -509,7 +514,9 @@
             align-items: center;
             justify-content: center;
             white-space: nowrap;
-            padding: 0 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 6px;
         }
 
         .btn-png { background: var(--emerald); }
@@ -517,9 +524,8 @@
         .btn-share { background: var(--primary); }
 
         .controls-panel {
+            min-width: 0;
             width: 100%;
-            max-width: 100%;
-            overflow: hidden;
             background: var(--glass-surface);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
@@ -527,11 +533,11 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
         }
 
         .section-label {
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             font-weight: 800;
             color: var(--accent);
             display: flex;
@@ -541,12 +547,9 @@
 
         .template-tabs {
             display: flex;
-            flex-wrap: nowrap;
             gap: 6px;
             width: 100%;
-            max-width: 100%;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
             touch-action: pan-x;
             padding-bottom: 4px;
             scrollbar-width: none;
@@ -554,7 +557,7 @@
         .template-tabs::-webkit-scrollbar { display: none; }
 
         .tpl-tab {
-            padding: 7px 12px;
+            padding: 7px 11px;
             border-radius: 11px;
             border: 1px solid var(--glass-border);
             background: var(--bg-secondary);
@@ -571,15 +574,14 @@
             background: var(--primary);
             color: #fff;
             border-color: var(--primary);
-            box-shadow: 0 4px 12px var(--primary-glow);
+            box-shadow: 0 4px 14px var(--primary-glow);
         }
 
         .tpl-form {
             display: none;
             flex-direction: column;
-            gap: 9px;
+            gap: 10px;
             width: 100%;
-            max-width: 100%;
         }
         .tpl-form.active {
             display: flex;
@@ -587,29 +589,26 @@
 
         .field-row {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 8px;
-            width: 100%;
         }
 
-        @media (max-width: 440px) {
+        @media (max-width: 420px) {
             .field-row {
                 grid-template-columns: minmax(0, 1fr);
             }
         }
 
-        /* حجم خط 16px يمنع الزوم التلقائي في متصفح Safari على iOS */
         .std-input, .std-select, .std-textarea {
             width: 100%;
-            max-width: 100%;
             min-width: 0;
-            height: 46px;
+            height: 44px;
             background: var(--bg-main);
             border: 1.5px solid rgba(255, 255, 255, 0.12);
             border-radius: 12px;
             padding: 0 12px;
             color: var(--text-primary);
-            font-size: 16px;
+            font-size: 0.88rem;
             font-weight: 600;
             outline: none;
             -webkit-user-select: text;
@@ -628,7 +627,7 @@
         }
 
         .std-textarea {
-            height: 78px;
+            height: 74px;
             padding: 10px 12px;
             resize: none;
         }
@@ -642,7 +641,7 @@
             border: 2px dashed rgba(99, 102, 241, 0.55);
             background: rgba(99, 102, 241, 0.07);
             border-radius: 15px;
-            padding: 16px 12px;
+            padding: 15px 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -668,7 +667,7 @@
         .upload-zone p {
             font-size: 0.76rem;
             color: var(--text-secondary);
-            line-height: 1.5;
+            line-height: 1.45;
         }
 
         .progress-track {
@@ -691,7 +690,6 @@
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 8px;
-            width: 100%;
             background: var(--bg-main);
             padding: 10px;
             border-radius: 14px;
@@ -706,7 +704,6 @@
             font-size: 0.72rem;
             color: var(--text-secondary);
             font-weight: 700;
-            text-align: center;
         }
 
         .color-item input[type="color"] {
@@ -737,7 +734,7 @@
 
         /* ==================== 3. صفحة سجل المحفوظات ==================== */
         #historyView {
-            padding: 14px 12px calc(110px + var(--safe-bottom));
+            padding: 16px 12px calc(96px + var(--safe-bottom));
         }
 
         .history-container {
@@ -746,13 +743,14 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .history-top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
             margin-bottom: 4px;
         }
 
@@ -765,20 +763,20 @@
             font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         .history-list {
             display: flex;
             flex-direction: column;
-            gap: 9px;
+            gap: 10px;
         }
 
         .history-card {
-            width: 100%;
             background: var(--glass-surface);
             border: 1px solid var(--glass-border);
             border-radius: 15px;
-            padding: 12px;
+            padding: 11px 13px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -843,9 +841,10 @@
         .bottom-nav {
             position: fixed;
             bottom: calc(12px + var(--safe-bottom));
-            left: 50%;
-            transform: translateX(-50%);
-            width: min(92%, 400px);
+            left: 14px;
+            right: 14px;
+            margin: 0 auto;
+            max-width: 440px;
             height: 58px;
             background: rgba(15, 23, 42, 0.94);
             backdrop-filter: blur(20px);
@@ -854,21 +853,22 @@
             border-radius: 999px;
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 4px;
+            align-items: center;
             padding: 5px;
+            gap: 4px;
             z-index: 50;
             box-shadow: 0 14px 35px rgba(0, 0, 0, 0.7);
         }
 
         .nav-tab {
-            width: 100%;
             min-width: 0;
+            width: 100%;
             height: 100%;
             border-radius: 999px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             font-weight: 800;
             cursor: pointer;
             display: flex;
@@ -876,7 +876,10 @@
             justify-content: center;
             gap: 5px;
             white-space: nowrap;
-            transition: all 0.2s ease;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 6px;
+            transition: all 0.25s ease;
         }
 
         .nav-tab.active {
@@ -886,7 +889,7 @@
         }
 
         button:active:not(:disabled) {
-            transform: scale(0.95);
+            transform: scale(0.96);
         }
     </style>
 </head>
@@ -953,7 +956,7 @@
         <section class="view-page" id="generatorView">
             <div class="studio-grid">
 
-                <!-- بطاقة المعاينة والحفظ -->
+                <!-- عمود المعاينة والحفظ -->
                 <div class="preview-panel">
                     <div class="canvas-container" id="qrCard">
                         <canvas id="qrCanvas" width="1024" height="1024"></canvas>
@@ -969,7 +972,7 @@
                     </div>
                 </div>
 
-                <!-- بطاقة القوالب والتخصيص -->
+                <!-- عمود القوالب والتخصيص -->
                 <div class="controls-panel">
                     <div class="section-label">
                         <span>1. اختر نوع رمز الـ QR</span>
@@ -993,7 +996,7 @@
                     <div class="tpl-form" id="form-files">
                         <div class="upload-zone" id="uploadTriggerZone">
                             <h4>اضغط لاختيار عدة صور أو ملف PDF</h4>
-                            <p>يتم دمج الصور تلقائياً واحدة تحت الأخرى وعرضها مباشرة بدون إضافات</p>
+                            <p>يتم دمج الصور تلقائياً واحدة تحت الأخرى وعرضها مباشرة في المتصفح</p>
                         </div>
                         <div class="progress-track" id="uploadProgressTrack">
                             <div class="progress-bar" id="uploadProgressBar"></div>
@@ -1079,4 +1082,1243 @@
 
     <!-- شريط التنقل السفلي -->
     <nav class="bottom-nav">
-        <button class="nav-tab active" data-target
+        <button class="nav-tab active" data-target="scannerView">📷 الماسح</button>
+        <button class="nav-tab" data-target="generatorView">✨ التوليد</button>
+        <button class="nav-tab" data-target="historyView">🕘 السجل</button>
+    </nav>
+
+    <script>
+        const IMGBB_API_KEY = "d6e15cb5b6c12b8e7157afee611aa441";
+
+        // عناصر النظام العامة
+        const toastBox = document.getElementById('toastBox');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const viewPages = document.querySelectorAll('.view-page');
+
+        // عناصر الماسح
+        const cameraVideo = document.getElementById('cameraVideo');
+        const scanResultBox = document.getElementById('scanResultBox');
+        const scanTypeBadge = document.getElementById('scanTypeBadge');
+        const resultText = document.getElementById('resultText');
+        const scanActionRow = document.getElementById('scanActionRow');
+        const openActionBtn = document.getElementById('openActionBtn');
+        const copyScanBtn = document.getElementById('copyScanBtn');
+        const resetScanBtn = document.getElementById('resetScanBtn');
+        const corners = document.querySelectorAll('.corner');
+        const zoomRow = document.getElementById('zoomRow');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomVal = document.getElementById('zoomVal');
+        const switchCamBtn = document.getElementById('switchCamBtn');
+        const torchBtn = document.getElementById('torchBtn');
+        const scanGalleryBtn = document.getElementById('scanGalleryBtn');
+        const scanFileInput = document.getElementById('scanFileInput');
+
+        // عناصر التوليد
+        const qrCard = document.getElementById('qrCard');
+        const qrCanvas = document.getElementById('qrCanvas');
+        const qrPlaceholder = document.getElementById('qrPlaceholder');
+        const genStatusText = document.getElementById('genStatusText');
+        const savePngBtn = document.getElementById('savePngBtn');
+        const saveJpgBtn = document.getElementById('saveJpgBtn');
+        const shareQrBtn = document.getElementById('shareQrBtn');
+        const templateTabs = document.querySelectorAll('.tpl-tab');
+        const tplForms = document.querySelectorAll('.tpl-form');
+        const qrDarkColor = document.getElementById('qrDarkColor');
+        const qrLightColor = document.getElementById('qrLightColor');
+        const pickLogoBtn = document.getElementById('pickLogoBtn');
+        const logoFileInput = document.getElementById('logoFileInput');
+        const wifiPassInput = document.getElementById('wifiPass');
+        const wifiEncSelect = document.getElementById('wifiEnc');
+
+        // عناصر الرفع والسجل
+        const uploadTriggerZone = document.getElementById('uploadTriggerZone');
+        const uploadFilesInput = document.getElementById('uploadFilesInput');
+        const uploadProgressTrack = document.getElementById('uploadProgressTrack');
+        const uploadProgressBar = document.getElementById('uploadProgressBar');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        // متغيرات الحالة
+        let soundEnabled = true;
+        let audioCtx = null;
+        let activeView = "scannerView";
+        let currentTemplate = "text";
+        let lastScannedData = "";
+        let currentActionHref = "";
+        let hasGeneratedQR = false;
+        let currentQRPayload = "";
+        let customLogoImg = null;
+        let customLogoUrl = null;
+        let videoStream = null;
+        let facingMode = "environment";
+        let isTorchOn = false;
+        let lastScanCheck = 0;
+        let scanTick = 0;
+        let scanLoopId = null;
+        let toastTimer = null;
+        let cameraRequestId = 0;
+        let qrRenderSeq = 0;
+        let isUploading = false;
+        let barcodeDetector = null;
+        let isDetectingNative = false;
+
+        const hiddenCanvas = document.createElement('canvas');
+        const hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+
+        // منع التكبير باللمس المزدوج أو القرص على iOS
+        document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+        document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+
+        // ==================== تهيئة القارئ المدمج بالمتصفح ====================
+        async function initBarcodeDetector() {
+            if (!('BarcodeDetector' in window)) return;
+            try {
+                if (typeof BarcodeDetector.getSupportedFormats === 'function') {
+                    const formats = await BarcodeDetector.getSupportedFormats();
+                    if (!formats.includes('qr_code')) return;
+                }
+                barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+            } catch (_) {
+                barcodeDetector = null;
+            }
+        }
+
+        function extractJsQRText(code) {
+            if (!code) return "";
+            if (code.data && code.data.trim() !== "") return code.data.trim();
+            if (code.binaryData && code.binaryData.length > 0 && typeof TextDecoder !== "undefined") {
+                try {
+                    return new TextDecoder('utf-8').decode(new Uint8Array(code.binaryData)).trim();
+                } catch (_) {}
+            }
+            return "";
+        }
+
+        // ==================== دوال مساعدة عامة ====================
+        function showToast(msg) {
+            toastBox.textContent = msg;
+            toastBox.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toastBox.classList.remove('show'), 2400);
+        }
+
+        async function copyTextSafe(text) {
+            if (!text) return false;
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+            } catch (_) {}
+
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function drawRoundRect(ctx, x, y, w, h, r) {
+            const radius = Math.min(r, w / 2, h / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + w, y, x + w, y + h, radius);
+            ctx.arcTo(x + w, y + h, x, y + h, radius);
+            ctx.arcTo(x, y + h, x, y, radius);
+            ctx.arcTo(x, y, x + w, y, radius);
+            ctx.closePath();
+        }
+
+        function escapeWifiValue(str) {
+            return str.replace(/([\\;,:"])/g, '\\$1');
+        }
+
+        function unescapeWifiValue(str) {
+            return str.replace(/\\([\\;,:"])/g, '$1');
+        }
+
+        async function fetchWithTimeout(url, options = {}, timeoutMs = 25000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const res = reader.result || "";
+                    const idx = res.indexOf(',');
+                    resolve(idx >= 0 ? res.slice(idx + 1) : res);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // ==================== صوت النظام ====================
+        soundToggleBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
+            showToast(soundEnabled ? "تم تفعيل التنبيه الصوتي" : "تم كتم الصوت");
+        });
+
+        function playBeep() {
+            if (!soundEnabled) return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(920, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1380, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.11);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.11);
+            } catch (_) {}
+        }
+
+        // ==================== التنقل بين الصفحات ====================
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.getAttribute('data-target');
+                if (target === activeView) return;
+
+                navTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                viewPages.forEach(p => p.classList.toggle('active', p.id === target));
+                activeView = target;
+
+                if (target === "scannerView") {
+                    startCamera();
+                } else {
+                    stopCamera();
+                }
+
+                if (target === "historyView") {
+                    renderHistoryList();
+                }
+            });
+        });
+
+        // ==================== إدارة الكاميرا والمسح الذكي ====================
+        function stopCamera() {
+            cameraRequestId++;
+            if (scanLoopId) {
+                cancelAnimationFrame(scanLoopId);
+                scanLoopId = null;
+            }
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+                videoStream = null;
+            }
+            cameraVideo.srcObject = null;
+            isTorchOn = false;
+            isDetectingNative = false;
+            torchBtn.classList.remove('active-torch');
+            torchBtn.style.display = "none";
+            zoomRow.style.display = "none";
+        }
+
+        async function startCamera() {
+            stopCamera();
+            const reqId = ++cameraRequestId;
+            lastScanCheck = 0;
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                resultText.textContent = "الكاميرا تتطلب فتح الصفحة عبر HTTPS، أو استخدم زر (من صورة)";
+                return;
+            }
+
+            if (!barcodeDetector && typeof jsQR !== "function") {
+                resultText.textContent = "تعذر تحميل محرك قراءة الـ QR، تحقق من الإنترنت ثم أعد تحميل الصفحة";
+            }
+
+            const tries = [
+                { video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+                { video: { facingMode: facingMode }, audio: false },
+                { video: true, audio: false }
+            ];
+
+            let stream = null;
+            for (const c of tries) {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(c);
+                    break;
+                } catch (_) {}
+            }
+
+            if (reqId !== cameraRequestId || activeView !== "scannerView") {
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                return;
+            }
+
+            if (!stream) {
+                resultText.textContent = "تعذر تشغيل الكاميرا، تأكد من منح الصلاحية أو امسح من صورة";
+                return;
+            }
+
+            videoStream = stream;
+            cameraVideo.muted = true;
+            cameraVideo.playsInline = true;
+            cameraVideo.classList.toggle('mirrored', facingMode === "user");
+            cameraVideo.srcObject = videoStream;
+            try { await cameraVideo.play(); } catch (_) {}
+
+            if (reqId !== cameraRequestId || activeView !== "scannerView") {
+                stopCamera();
+                return;
+            }
+
+            const track = videoStream.getVideoTracks()[0];
+            if (track && typeof track.getCapabilities === "function") {
+                try {
+                    const caps = track.getCapabilities();
+                    if (caps.focusMode && caps.focusMode.includes('continuous')) {
+                        track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+                    }
+                    if (caps.torch) {
+                        torchBtn.style.display = "flex";
+                    }
+                    if (caps.zoom && caps.zoom.max > caps.zoom.min) {
+                        const minZ = caps.zoom.min || 1;
+                        const maxZ = Math.min(caps.zoom.max || 5, 6);
+                        const settings = typeof track.getSettings === "function" ? track.getSettings() : {};
+                        const curZ = Math.min(maxZ, Math.max(minZ, settings.zoom || minZ));
+
+                        zoomSlider.min = minZ;
+                        zoomSlider.max = maxZ;
+                        zoomSlider.step = caps.zoom.step || 0.1;
+                        zoomSlider.value = curZ;
+                        zoomVal.textContent = Number(curZ).toFixed(1) + "x";
+                        zoomRow.style.display = "flex";
+                    }
+                } catch (_) {}
+            }
+
+            scanLoopId = requestAnimationFrame(scanFrameLoop);
+        }
+
+        zoomSlider.addEventListener('input', async () => {
+            if (!videoStream) return;
+            const track = videoStream.getVideoTracks()[0];
+            if (!track) return;
+            const z = parseFloat(zoomSlider.value);
+            zoomVal.textContent = z.toFixed(1) + "x";
+            try {
+                await track.applyConstraints({ advanced: [{ zoom: z }] });
+            } catch (_) {}
+        });
+
+        switchCamBtn.addEventListener('click', () => {
+            facingMode = facingMode === "environment" ? "user" : "environment";
+            startCamera();
+        });
+
+        torchBtn.addEventListener('click', async () => {
+            if (!videoStream) return;
+            const track = videoStream.getVideoTracks()[0];
+            if (!track) return;
+            const nextState = !isTorchOn;
+            try {
+                await track.applyConstraints({ advanced: [{ torch: nextState }] });
+                isTorchOn = nextState;
+                torchBtn.classList.toggle('active-torch', isTorchOn);
+            } catch (_) {
+                showToast("الفلاش غير مدعوم في هذه العدسة");
+            }
+        });
+
+        function scanCanvasRegion(sx, sy, sw, sh, outW, outH) {
+            hiddenCanvas.width = outW;
+            hiddenCanvas.height = outH;
+            hiddenCtx.drawImage(cameraVideo, sx, sy, sw, sh, 0, 0, outW, outH);
+            const imgData = hiddenCtx.getImageData(0, 0, outW, outH);
+            const code = jsQR(imgData.data, imgData.width, imgData.height, {
+                inversionAttempts: "attemptBoth"
+            });
+            return extractJsQRText(code);
+        }
+
+        function scanFrameLoop(ts) {
+            if (activeView !== "scannerView" || !videoStream) return;
+
+            const ready = cameraVideo.readyState >= 2 && cameraVideo.videoWidth > 0 && cameraVideo.videoHeight > 0;
+
+            if (ready && ts - lastScanCheck >= 110) {
+                lastScanCheck = ts;
+                scanTick++;
+
+                if (barcodeDetector && !isDetectingNative) {
+                    isDetectingNative = true;
+                    barcodeDetector.detect(cameraVideo)
+                        .then(codes => {
+                            if (activeView === "scannerView" && codes && codes.length > 0) {
+                                const val = (codes[0].rawValue || "").trim();
+                                if (val) handleDetectedQR(val);
+                            }
+                        })
+                        .catch(() => {})
+                        .finally(() => { isDetectingNative = false; });
+                }
+
+                if (typeof jsQR === "function") {
+                    const vw = cameraVideo.videoWidth;
+                    const vh = cameraVideo.videoHeight;
+                    let foundText = "";
+
+                    try {
+                        if (scanTick % 2 === 0) {
+                            const cropSide = Math.round(Math.min(vw, vh) * 0.72);
+                            const sx = Math.round((vw - cropSide) / 2);
+                            const sy = Math.round((vh - cropSide) / 2);
+                            const outSide = Math.min(720, cropSide);
+                            foundText = scanCanvasRegion(sx, sy, cropSide, cropSide, outSide, outSide);
+                        } else {
+                            const scale = Math.min(1, 800 / Math.max(vw, vh));
+                            const outW = Math.max(1, Math.round(vw * scale));
+                            const outH = Math.max(1, Math.round(vh * scale));
+                            foundText = scanCanvasRegion(0, 0, vw, vh, outW, outH);
+                        }
+                    } catch (_) {}
+
+                    if (foundText) {
+                        handleDetectedQR(foundText);
+                    }
+                }
+            }
+
+            scanLoopId = requestAnimationFrame(scanFrameLoop);
+        }
+
+        function parseScannedPayload(raw) {
+            const lower = raw.toLowerCase();
+            if (lower.startsWith("http://") || lower.startsWith("https://")) {
+                return { type: "رابط موقع", actionText: "فتح الرابط ↗", href: raw, display: raw };
+            }
+            if (/^www\.[^\s]+\.[^\s]+/i.test(raw)) {
+                return { type: "رابط موقع", actionText: "فتح الرابط ↗", href: "https://" + raw, display: raw };
+            }
+            if (lower.startsWith("mailto:") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
+                const cleanEmail = raw.replace(/^mailto:/i, '').split('?')[0];
+                return { type: "بريد إلكتروني", actionText: "إرسال بريد ✉️", href: lower.startsWith("mailto:") ? raw : "mailto:" + cleanEmail, display: cleanEmail };
+            }
+            if (lower.startsWith("tel:") || /^\+?[0-9\s\-]{7,16}$/.test(raw)) {
+                const cleanTel = raw.replace(/^tel:/i, '').trim();
+                return { type: "رقم هاتف", actionText: "اتصال هاتفي 📞", href: "tel:" + cleanTel.replace(/\s+/g, ''), display: cleanTel };
+            }
+            if (lower.startsWith("wifi:")) {
+                const ssidMatch = raw.match(/(?:^|[^\\]);?S:((?:\\.|[^;])*)/i);
+                const passMatch = raw.match(/(?:^|[^\\]);P:((?:\\.|[^;])*)/i);
+                const ssid = ssidMatch && ssidMatch[1] ? unescapeWifiValue(ssidMatch[1]) : "غير معروف";
+                const pass = passMatch && passMatch[1] ? unescapeWifiValue(passMatch[1]) : "بدون كلمة مرور";
+                return { type: "شبكة Wi-Fi", actionText: "", href: "", display: `الشبكة: ${ssid} | الرمز: ${pass}` };
+            }
+            if (lower.startsWith("begin:vcard")) {
+                const fnMatch = raw.match(/FN:(.+)/i);
+                const telMatch = raw.match(/TEL[^:]*:(.+)/i);
+                const name = fnMatch ? fnMatch[1].trim() : "جهة اتصال";
+                const phone = telMatch ? telMatch[1].trim() : "";
+                return { type: "بطاقة اتصال", actionText: phone ? "اتصال 📞" : "", href: phone ? `tel:${phone.replace(/\s+/g, '')}` : "", display: `${name}${phone ? ' - ' + phone : ''}` };
+            }
+            return { type: "نص مقروء", actionText: "", href: "", display: raw };
+        }
+
+        function handleDetectedQR(data) {
+            if (!data || data === lastScannedData) return;
+            lastScannedData = data;
+
+            if (navigator.vibrate) navigator.vibrate(90);
+            playBeep();
+
+            corners.forEach(c => c.style.borderColor = "#10B981");
+            scanResultBox.style.borderColor = "#10B981";
+            setTimeout(() => {
+                corners.forEach(c => c.style.borderColor = "#00F5D4");
+                scanResultBox.style.borderColor = "rgba(0, 245, 212, 0.35)";
+            }, 600);
+
+            const parsed = parseScannedPayload(data);
+            scanTypeBadge.textContent = parsed.type;
+            scanTypeBadge.style.display = "inline-block";
+            resultText.textContent = parsed.display;
+            scanActionRow.style.display = "flex";
+
+            if (parsed.href) {
+                currentActionHref = parsed.href;
+                openActionBtn.textContent = parsed.actionText;
+                openActionBtn.style.display = "inline-flex";
+            } else {
+                currentActionHref = "";
+                openActionBtn.style.display = "none";
+            }
+
+            saveToHistory("مسح", parsed.type, parsed.display, data);
+        }
+
+        openActionBtn.addEventListener('click', () => {
+            if (!currentActionHref) return;
+            if (currentActionHref.startsWith("http://") || currentActionHref.startsWith("https://")) {
+                window.open(currentActionHref, "_blank", "noopener,noreferrer");
+            } else {
+                window.location.href = currentActionHref;
+            }
+        });
+
+        copyScanBtn.addEventListener('click', async () => {
+            if (!lastScannedData) return;
+            const ok = await copyTextSafe(resultText.textContent);
+            showToast(ok ? "تم نسخ النتيجة إلى الحافظة ✓" : "تعذر النسخ على هذا المتصفح");
+        });
+
+        resetScanBtn.addEventListener('click', () => {
+            lastScannedData = "";
+            currentActionHref = "";
+            scanTypeBadge.style.display = "none";
+            resultText.textContent = "وجّه الكاميرا نحو رمز الـ QR للمسح الفوري";
+            scanActionRow.style.display = "none";
+        });
+
+        scanGalleryBtn.addEventListener('click', () => scanFileInput.click());
+
+        scanFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!barcodeDetector && typeof jsQR !== "function") {
+                showToast("مكتبة قراءة الـ QR غير متاحة، تحقق من الإنترنت");
+                scanFileInput.value = "";
+                return;
+            }
+
+            const img = new Image();
+            const objUrl = URL.createObjectURL(file);
+
+            img.onload = async () => {
+                let found = "";
+
+                if (barcodeDetector) {
+                    try {
+                        const codes = await barcodeDetector.detect(img);
+                        if (codes && codes.length > 0 && codes[0].rawValue) {
+                            found = codes[0].rawValue.trim();
+                        }
+                    } catch (_) {}
+                }
+
+                if (!found && typeof jsQR === "function") {
+                    const scales = [1200, 800, 1600, 500];
+                    for (const maxDim of scales) {
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > maxDim || h > maxDim) {
+                            const r = w / h;
+                            if (w > h) { w = maxDim; h = Math.round(maxDim / r); }
+                            else { h = maxDim; w = Math.round(maxDim * r); }
+                        }
+                        const pad = 28;
+                        hiddenCanvas.width = w + pad * 2;
+                        hiddenCanvas.height = h + pad * 2;
+                        hiddenCtx.fillStyle = "#FFFFFF";
+                        hiddenCtx.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                        hiddenCtx.drawImage(img, pad, pad, w, h);
+
+                        const imgData = hiddenCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                        const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
+                        const txt = extractJsQRText(code);
+                        if (txt) {
+                            found = txt;
+                            break;
+                        }
+                    }
+                }
+
+                URL.revokeObjectURL(objUrl);
+
+                if (found) {
+                    lastScannedData = "";
+                    handleDetectedQR(found);
+                    showToast("تمت قراءة رمز الـ QR من الصورة ✓");
+                } else {
+                    showToast("لم يتم العثور على رمز QR واضح في الصورة");
+                }
+            };
+
+            img.onerror = () => {
+                URL.revokeObjectURL(objUrl);
+                showToast("تعذر قراءة ملف الصورة المختار");
+            };
+
+            img.src = objUrl;
+            scanFileInput.value = "";
+        });
+
+        // ==================== استوديو التوليد والقوالب الذكية ====================
+        function syncWifiPassField() {
+            const noPass = wifiEncSelect.value === "nopass";
+            wifiPassInput.disabled = noPass;
+            if (noPass) wifiPassInput.value = "";
+        }
+
+        wifiEncSelect.addEventListener('change', () => {
+            syncWifiPassField();
+            buildPayloadFromActiveTemplate();
+        });
+
+        templateTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                templateTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentTemplate = tab.getAttribute('data-tpl');
+
+                tplForms.forEach(f => f.classList.toggle('active', f.id === `form-${currentTemplate}`));
+                buildPayloadFromActiveTemplate();
+            });
+        });
+
+        function clearGeneratedQR() {
+            qrRenderSeq++;
+            currentQRPayload = "";
+            hasGeneratedQR = false;
+            qrCanvas.style.display = "none";
+            qrPlaceholder.style.display = "block";
+            genStatusText.style.color = "var(--text-secondary)";
+            genStatusText.textContent = "جاهز للتوليد الفوري...";
+        }
+
+        function buildPayloadFromActiveTemplate() {
+            if (currentTemplate === "files") return;
+
+            let payload = "";
+            if (currentTemplate === "text") {
+                const raw = document.getElementById('inputText').value.trim();
+                if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) payload = "mailto:" + raw;
+                else payload = raw;
+            } else if (currentTemplate === "wifi") {
+                const ssid = document.getElementById('wifiSsid').value.trim();
+                const pass = wifiPassInput.value;
+                const enc = wifiEncSelect.value;
+                if (ssid) {
+                    const safeSsid = escapeWifiValue(ssid);
+                    const safePass = enc === "nopass" ? "" : escapeWifiValue(pass);
+                    payload = enc === "nopass"
+                        ? `WIFI:T:nopass;S:${safeSsid};;`
+                        : `WIFI:T:${enc};S:${safeSsid};P:${safePass};;`;
+                }
+            } else if (currentTemplate === "whatsapp") {
+                const phone = document.getElementById('waPhone').value.replace(/[^0-9]/g, '').replace(/^00/, '');
+                const msg = encodeURIComponent(document.getElementById('waMsg').value.trim());
+                if (phone) payload = `https://wa.me/${phone}${msg ? '?text=' + msg : ''}`;
+            } else if (currentTemplate === "email") {
+                const to = document.getElementById('mailTo').value.trim();
+                const sub = document.getElementById('mailSub').value.trim();
+                const body = document.getElementById('mailBody').value.trim();
+                if (to) {
+                    const params = [];
+                    if (sub) params.push("subject=" + encodeURIComponent(sub));
+                    if (body) params.push("body=" + encodeURIComponent(body));
+                    payload = `mailto:${to}${params.length ? '?' + params.join('&') : ''}`;
+                }
+            } else if (currentTemplate === "vcard") {
+                const name = document.getElementById('vcName').value.trim();
+                const phone = document.getElementById('vcPhone').value.trim();
+                const email = document.getElementById('vcEmail').value.trim();
+                const org = document.getElementById('vcOrg').value.trim();
+                if (name || phone || email || org) {
+                    const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+                    if (name) {
+                        lines.push(`N:;${name};;;`);
+                        lines.push(`FN:${name}`);
+                    }
+                    if (phone) lines.push(`TEL;TYPE=CELL:${phone}`);
+                    if (email) lines.push(`EMAIL:${email}`);
+                    if (org) lines.push(`ORG:${org}`);
+                    lines.push("END:VCARD");
+                    payload = lines.join("\r\n");
+                }
+            }
+
+            if (payload) {
+                renderStyledQR(payload);
+            } else {
+                clearGeneratedQR();
+            }
+        }
+
+        document.querySelectorAll('.std-input, .std-textarea').forEach(el => {
+            el.addEventListener('input', buildPayloadFromActiveTemplate);
+        });
+
+        qrDarkColor.addEventListener('input', () => {
+            if (currentQRPayload) renderStyledQR(currentQRPayload);
+        });
+
+        qrLightColor.addEventListener('input', () => {
+            qrCard.style.backgroundColor = qrLightColor.value;
+            if (currentQRPayload) renderStyledQR(currentQRPayload);
+        });
+
+        pickLogoBtn.addEventListener('click', () => {
+            if (customLogoImg) {
+                customLogoImg = null;
+                if (customLogoUrl) {
+                    URL.revokeObjectURL(customLogoUrl);
+                    customLogoUrl = null;
+                }
+                pickLogoBtn.textContent = "+ إضافة شعار";
+                if (currentQRPayload) renderStyledQR(currentQRPayload);
+                return;
+            }
+            logoFileInput.click();
+        });
+
+        logoFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const img = new Image();
+            const objUrl = URL.createObjectURL(file);
+
+            img.onload = () => {
+                if (customLogoUrl) URL.revokeObjectURL(customLogoUrl);
+                customLogoUrl = objUrl;
+                customLogoImg = img;
+                pickLogoBtn.textContent = "✕ إزالة الشعار";
+                if (currentQRPayload) renderStyledQR(currentQRPayload);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(objUrl);
+                showToast("تعذر تحميل صورة الشعار");
+            };
+            img.src = objUrl;
+            logoFileInput.value = "";
+        });
+
+        function renderStyledQR(payload) {
+            if (typeof QRCode === "undefined") {
+                genStatusText.style.color = "#F43F5E";
+                genStatusText.textContent = "مكتبة التوليد غير متاحة، تحقق من اتصال الإنترنت";
+                return;
+            }
+
+            currentQRPayload = payload;
+            const seq = ++qrRenderSeq;
+            qrCard.style.backgroundColor = qrLightColor.value;
+
+            QRCode.toCanvas(qrCanvas, payload, {
+                width: 1024,
+                margin: 2,
+                errorCorrectionLevel: customLogoImg ? 'H' : 'M',
+                color: {
+                    dark: qrDarkColor.value,
+                    light: qrLightColor.value
+                }
+            }, (err) => {
+                if (seq !== qrRenderSeq) return;
+
+                if (err) {
+                    hasGeneratedQR = false;
+                    qrCanvas.style.display = "none";
+                    qrPlaceholder.style.display = "block";
+                    genStatusText.style.color = "#F43F5E";
+                    genStatusText.textContent = "النص طويل جداً لتضمينه في رمز QR";
+                    return;
+                }
+
+                if (customLogoImg) {
+                    const ctx = qrCanvas.getContext('2d');
+                    const size = 210;
+                    const x = (qrCanvas.width - size) / 2;
+                    const y = (qrCanvas.height - size) / 2;
+
+                    ctx.fillStyle = qrLightColor.value;
+                    drawRoundRect(ctx, x - 14, y - 14, size + 28, size + 28, 28);
+                    ctx.fill();
+
+                    ctx.save();
+                    drawRoundRect(ctx, x, y, size, size, 20);
+                    ctx.clip();
+
+                    const iw = customLogoImg.naturalWidth || customLogoImg.width;
+                    const ih = customLogoImg.naturalHeight || customLogoImg.height;
+                    const side = Math.min(iw, ih);
+                    const sx = (iw - side) / 2;
+                    const sy = (ih - side) / 2;
+                    ctx.drawImage(customLogoImg, sx, sy, side, side, x, y, size, size);
+                    ctx.restore();
+                }
+
+                qrPlaceholder.style.display = "none";
+                qrCanvas.style.display = "block";
+                hasGeneratedQR = true;
+                genStatusText.style.color = "#00F5D4";
+                genStatusText.textContent = "تم توليد رمز الـ QR بدقة 1024px جاهزة للطباعة ✓";
+            });
+        }
+
+        // ==================== حفظ ومشاركة رمز الـ QR ====================
+        function triggerDownload(href, filename, revokeAfter) {
+            const a = document.createElement('a');
+            a.download = filename;
+            a.href = href;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            if (revokeAfter) setTimeout(() => URL.revokeObjectURL(href), 3000);
+        }
+
+        function downloadGeneratedQR(asPng) {
+            if (!hasGeneratedQR) {
+                showToast("قم بتوليد رمز QR أولاً قبل الحفظ");
+                return;
+            }
+            const ext = asPng ? "png" : "jpg";
+            const mime = asPng ? "image/png" : "image/jpeg";
+            const filename = `QR_Pro_${Date.now()}.${ext}`;
+
+            const finalize = () => {
+                saveToHistory("توليد", currentTemplate.toUpperCase(), currentQRPayload, currentQRPayload);
+                showToast(`تم حفظ الرمز بصيغة ${ext.toUpperCase()} ✓`);
+            };
+
+            if (typeof qrCanvas.toBlob === "function") {
+                qrCanvas.toBlob(blob => {
+                    if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        triggerDownload(url, filename, true);
+                    } else {
+                        triggerDownload(qrCanvas.toDataURL(mime, 0.96), filename, false);
+                    }
+                    finalize();
+                }, mime, 0.96);
+            } else {
+                triggerDownload(qrCanvas.toDataURL(mime, 0.96), filename, false);
+                finalize();
+            }
+        }
+
+        savePngBtn.addEventListener('click', () => downloadGeneratedQR(true));
+        saveJpgBtn.addEventListener('click', () => downloadGeneratedQR(false));
+
+        shareQrBtn.addEventListener('click', () => {
+            if (!hasGeneratedQR) {
+                showToast("قم بتوليد رمز QR أولاً للمشاركة");
+                return;
+            }
+            qrCanvas.toBlob(async (blob) => {
+                if (!blob) {
+                    downloadGeneratedQR(true);
+                    return;
+                }
+                const file = new File([blob], "QR_Studio_Pro.png", { type: "image/png" });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({ title: "رمز QR", files: [file] });
+                        return;
+                    } catch (err) {
+                        if (err && err.name === "AbortError") return;
+                    }
+                }
+                downloadGeneratedQR(true);
+            }, "image/png");
+        });
+
+        // ==================== دمج الصور عمودياً ورفع الملفات ====================
+        uploadTriggerZone.addEventListener('click', () => {
+            if (!isUploading) uploadFilesInput.click();
+        });
+
+        uploadTriggerZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!isUploading) uploadTriggerZone.classList.add('dragover');
+        });
+
+        uploadTriggerZone.addEventListener('dragleave', () => {
+            uploadTriggerZone.classList.remove('dragover');
+        });
+
+        uploadTriggerZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadTriggerZone.classList.remove('dragover');
+            if (!isUploading && e.dataTransfer && e.dataTransfer.files.length) {
+                processSelectedUploadFiles(Array.from(e.dataTransfer.files));
+            }
+        });
+
+        uploadFilesInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            uploadFilesInput.value = "";
+            if (files.length) processSelectedUploadFiles(files);
+        });
+
+        async function processSelectedUploadFiles(files) {
+            if (isUploading) return;
+
+            const pdfFiles = files.filter(f => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
+            const imgFiles = files.filter(f => f.type.startsWith("image/"));
+
+            if (pdfFiles.length === 0 && imgFiles.length === 0) {
+                showToast("الرجاء اختيار صور أو ملف PDF فقط");
+                return;
+            }
+
+            isUploading = true;
+            uploadTriggerZone.classList.add('disabled');
+            uploadProgressTrack.style.display = "block";
+            uploadProgressBar.style.width = "20%";
+            genStatusText.style.color = "var(--accent)";
+
+            let uploadedUrl = null;
+            let historyLabel = "رابط ملف";
+
+            try {
+                if (pdfFiles.length > 0) {
+                    historyLabel = "ملف PDF";
+                    genStatusText.textContent = "جاري رفع ملف الـ PDF وتوليد الرمز...";
+                    uploadProgressBar.style.width = "55%";
+                    uploadedUrl = await uploadGeneralFile(pdfFiles[0]);
+                } else if (imgFiles.length > 0) {
+                    historyLabel = imgFiles.length > 1 ? "صور متتالية" : "صورة";
+                    genStatusText.textContent = imgFiles.length > 1
+                        ? `جاري دمج ${imgFiles.length} صور ورفعها...`
+                        : "جاري تحسين ورفع الصورة...";
+                    const mergedBlob = await combineImagesVertically(imgFiles, 920);
+                    uploadProgressBar.style.width = "65%";
+                    uploadedUrl = await uploadImageRaw(mergedBlob);
+                }
+            } catch (_) {}
+
+            uploadProgressBar.style.width = "100%";
+            setTimeout(() => {
+                uploadProgressTrack.style.display = "none";
+                uploadProgressBar.style.width = "0%";
+                uploadTriggerZone.classList.remove('disabled');
+                isUploading = false;
+            }, 400);
+
+            if (uploadedUrl) {
+                renderStyledQR(uploadedUrl);
+                saveToHistory("توليد ملف", historyLabel, uploadedUrl, uploadedUrl);
+                showToast("تم الرفع وتوليد رمز الـ QR بنجاح ✓");
+            } else {
+                genStatusText.style.color = "#F43F5E";
+                genStatusText.textContent = "تعذر الرفع، تحقق من الإنترنت وحاول مجدداً";
+            }
+        }
+
+        function combineImagesVertically(files, baseWidth = 920) {
+            return new Promise((resolve, reject) => {
+                const loaded = [];
+                const objectUrls = [];
+                let count = 0;
+                let failed = false;
+
+                const cleanup = () => {
+                    objectUrls.forEach(u => URL.revokeObjectURL(u));
+                };
+
+                files.forEach((file, idx) => {
+                    const img = new Image();
+                    const objUrl = URL.createObjectURL(file);
+                    objectUrls.push(objUrl);
+
+                    img.onload = () => {
+                        if (failed) return;
+                        loaded[idx] = img;
+                        count++;
+                        if (count === files.length) {
+                            let targetWidth = baseWidth;
+                            const gap = loaded.length > 1 ? 14 : 0;
+                            let rawHeight = gap * (loaded.length - 1);
+                            loaded.forEach(im => rawHeight += Math.round(targetWidth * (im.height / im.width)));
+
+                            if (rawHeight > 3800) {
+                                targetWidth = Math.max(360, Math.floor(targetWidth * (3800 / rawHeight)));
+                            }
+
+                            const maxPixels = 10000000;
+                            let estHeight = gap * (loaded.length - 1);
+                            loaded.forEach(im => estHeight += Math.round(targetWidth * (im.height / im.width)));
+                            if (targetWidth * estHeight > maxPixels) {
+                                const ratio = Math.sqrt(maxPixels / (targetWidth * estHeight));
+                                targetWidth = Math.max(320, Math.floor(targetWidth * ratio));
+                            }
+
+                            let totalH = 0;
+                            const heights = loaded.map(im => {
+                                const h = Math.max(1, Math.round(targetWidth * (im.height / im.width)));
+                                totalH += h;
+                                return h;
+                            });
+                            totalH += gap * (loaded.length - 1);
+
+                            const c = document.createElement('canvas');
+                            c.width = targetWidth;
+                            c.height = totalH;
+                            const ctx = c.getContext('2d');
+                            ctx.fillStyle = "#070B14";
+                            ctx.fillRect(0, 0, targetWidth, totalH);
+
+                            let y = 0;
+                            loaded.forEach((im, i) => {
+                                ctx.drawImage(im, 0, y, targetWidth, heights[i]);
+                                y += heights[i] + gap;
+                            });
+
+                            cleanup();
+                            c.toBlob(b => b ? resolve(b) : reject(new Error("Blob failed")), "image/jpeg", 0.84);
+                        }
+                    };
+
+                    img.onerror = () => {
+                        if (failed) return;
+                        failed = true;
+                        cleanup();
+                        reject(new Error("Image load failed"));
+                    };
+
+                    img.src = objUrl;
+                });
+            });
+        }
+
+        function toCloudflareRawImageUrl(rawUrl) {
+            const cleanTarget = rawUrl.replace(/^https?:\/\//i, '');
+            return `https://wsrv.nl/?url=${encodeURI(cleanTarget)}`;
+        }
+
+        async function uploadImageRaw(blob) {
+            const imgFile = new File([blob], `qr_${Date.now()}.jpg`, { type: "image/jpeg" });
+
+            // 1. الرفع على نفس سيرفر موقعك (إذا كان مفعّلاً على Cloudflare Workers)
+            try {
+                const fdSelf = new FormData();
+                fdSelf.append("file", imgFile);
+                const rSelf = await fetchWithTimeout("/api/upload", { method: "POST", body: fdSelf }, 15000);
+                if (rSelf.ok) {
+                    const jSelf = await rSelf.json();
+                    if (jSelf && jSelf.url) return jSelf.url;
+                }
+            } catch (_) {}
+
+            // 2. الرفع عبر ImgBB بصيغة Base64 (سريع ومستقر) ثم عرض الصورة خاماً عبر Cloudflare wsrv.nl
+            try {
+                const b64 = await blobToBase64(blob);
+                const body = new URLSearchParams();
+                body.append("key", IMGBB_API_KEY);
+                body.append("image", b64);
+
+                const res = await fetchWithTimeout("https://api.imgbb.com/1/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: body.toString()
+                }, 25000);
+
+                if (res.ok) {
+                    const json = await res.json();
+                    const rawUrl = json && json.data && (json.data.url || (json.data.image && json.data.image.url));
+                    if (rawUrl) {
+                        return toCloudflareRawImageUrl(rawUrl);
+                    }
+                }
+            } catch (_) {}
+
+            // 3. احتياطي: tmpfiles.org مع عرضه كصورة خام عبر wsrv.nl بدون صفحة الموقع
+            try {
+                const fd2 = new FormData();
+                fd2.append("file", imgFile);
+                const r2 = await fetchWithTimeout("https://tmpfiles.org/api/v1/upload", { method: "POST", body: fd2 }, 25000);
+                if (r2.ok) {
+                    const j2 = await r2.json();
+                    if (j2 && j2.data && j2.data.url) {
+                        let dlUrl = j2.data.url.replace("http://", "https://");
+                        if (!dlUrl.includes("tmpfiles.org/dl/")) {
+                            dlUrl = dlUrl.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+                        }
+                        return toCloudflareRawImageUrl(dlUrl);
+                    }
+                }
+            } catch (_) {}
+
+            // 4. احتياطي أخير: gofile.io
+            return await uploadGeneralFile(imgFile);
+        }
+
+        async function uploadGeneralFile(file) {
+            try {
+                const fdSelf = new FormData();
+                fdSelf.append("file", file);
+                const rSelf = await fetchWithTimeout("/api/upload", { method: "POST", body: fdSelf }, 15000);
+                if (rSelf.ok) {
+                    const jSelf = await rSelf.json();
+                    if (jSelf && jSelf.url) return jSelf.url;
+                }
+            } catch (_) {}
+
+            try {
+                const fd1 = new FormData();
+                fd1.append("file", file);
+                const r1 = await fetchWithTimeout("https://tmpfiles.org/api/v1/upload", { method: "POST", body: fd1 }, 25000);
+                if (r1.ok) {
+                    const j1 = await r1.json();
+                    if (j1 && j1.data && j1.data.url) {
+                        let url = j1.data.url.replace("http://", "https://");
+                        if (!url.includes("tmpfiles.org/dl/")) {
+                            url = url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+                        }
+                        return url;
+                    }
+                }
+            } catch (_) {}
+
+            try {
+                const fd2 = new FormData();
+                fd2.append("file", file);
+                const r2 = await fetchWithTimeout("https://upload.gofile.io/uploadfile", { method: "POST", body: fd2 }, 25000);
+                if (r2.ok) {
+                    const j2 = await r2.json();
+                    if (j2 && j2.status === "ok" && j2.data && j2.data.downloadPage) {
+                        return j2.data.downloadPage;
+                    }
+                }
+            } catch (_) {}
+
+            return null;
+        }
+
+        // ==================== إدارة سجل المحفوظات (LocalStorage) ====================
+        function getHistory() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem("qr_studio_pro_history") || "[]");
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function saveToHistory(mode, category, display, rawPayload) {
+            try {
+                const list = getHistory();
+                if (list.length > 0 && list[0].rawPayload === rawPayload) return;
+                list.unshift({
+                    mode,
+                    category,
+                    display,
+                    rawPayload,
+                    time: new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' })
+                });
+                localStorage.setItem("qr_studio_pro_history", JSON.stringify(list.slice(0, 30)));
+            } catch (_) {}
+        }
+
+        function renderHistoryList() {
+            const list = getHistory();
+            historyList.innerHTML = "";
+
+            if (list.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.style.cssText = "text-align:center;color:var(--text-secondary);padding:40px 10px;";
+                emptyDiv.textContent = "لا توجد عمليات مسح أو توليد محفوظة حتى الآن";
+                historyList.appendChild(emptyDiv);
+                return;
+            }
+
+            list.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = "history-card";
+
+                const info = document.createElement('div');
+                info.className = "hist-info";
+
+                const meta = document.createElement('div');
+                meta.className = "hist-meta";
+
+                const tag = document.createElement('span');
+                tag.className = `hist-tag ${item.mode === 'مسح' ? 'scan' : ''}`;
+                tag.textContent = `${item.mode} • ${item.category}`;
+
+                const timeSpan = document.createElement('span');
+                timeSpan.textContent = item.time || "";
+
+                meta.appendChild(tag);
+                meta.appendChild(timeSpan);
+
+                const dataDiv = document.createElement('div');
+                dataDiv.className = "hist-data";
+                dataDiv.textContent = item.display || item.rawPayload || "";
+
+                info.appendChild(meta);
+                info.appendChild(dataDiv);
+
+                const actions = document.createElement('div');
+                actions.className = "hist-actions";
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = "mini-btn copy-h";
+                copyBtn.textContent = "نسخ";
+                copyBtn.addEventListener('click', async () => {
+                    const ok = await copyTextSafe(item.rawPayload);
+                    showToast(ok ? "تم النسخ ✓" : "تعذر النسخ");
+                });
+
+                const regenBtn = document.createElement('button');
+                regenBtn.className = "mini-btn regen-h";
+                regenBtn.textContent = "عرض QR";
+                regenBtn.addEventListener('click', () => {
+                    document.querySelector('[data-target="generatorView"]').click();
+                    document.querySelector('[data-tpl="text"]').click();
+                    document.getElementById('inputText').value = item.rawPayload || "";
+                    renderStyledQR(item.rawPayload || "");
+                });
+
+                actions.appendChild(copyBtn);
+                actions.appendChild(regenBtn);
+
+                card.appendChild(info);
+                card.appendChild(actions);
+                historyList.appendChild(card);
+            });
+        }
+
+        clearHistoryBtn.addEventListener('click', () => {
+            try {
+                localStorage.removeItem("qr_studio_pro_history");
+            } catch (_) {}
+            renderHistoryList();
+            showToast("تم مسح السجل بالكامل");
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopCamera();
+            else if (activeView === "scannerView") startCamera();
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            syncWifiPassField();
+            initBarcodeDetector().finally(startCamera);
+        });
+    </script>
+</body>
+</html>
