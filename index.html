@@ -1420,14 +1420,12 @@
 
                     try {
                         if (scanTick % 2 === 0) {
-                            // قص مربع المنتصف بدقة عالية لسهولة قراءة الرموز الصغيرة والكثيفة
                             const cropSide = Math.round(Math.min(vw, vh) * 0.72);
                             const sx = Math.round((vw - cropSide) / 2);
                             const sy = Math.round((vh - cropSide) / 2);
                             const outSide = Math.min(720, cropSide);
                             foundText = scanCanvasRegion(sx, sy, cropSide, cropSide, outSide, outSide);
                         } else {
-                            // مسح الإطار الكامل
                             const scale = Math.min(1, 800 / Math.max(vw, vh));
                             const outW = Math.max(1, Math.round(vw * scale));
                             const outH = Math.max(1, Math.round(vh * scale));
@@ -1552,7 +1550,6 @@
             img.onload = async () => {
                 let found = "";
 
-                // 1. محاولة القراءة بالمحرك المدمج بالمتصفح أولاً
                 if (barcodeDetector) {
                     try {
                         const codes = await barcodeDetector.detect(img);
@@ -1562,7 +1559,6 @@
                     } catch (_) {}
                 }
 
-                // 2. القراءة عبر jsQR بعدة أحجام
                 if (!found && typeof jsQR === "function") {
                     const scales = [1200, 800, 1600, 500];
                     for (const maxDim of scales) {
@@ -2036,6 +2032,13 @@
         }
 
         async function uploadImageBlob(blob) {
+            const imgFile = new File([blob], "qr_merged.jpg", { type: "image/jpeg" });
+
+            // 1. الرفع على سيرفرات تعمل على 4G وسفاري بدون i.ibb.co
+            const directUrl = await uploadGeneralFile(imgFile);
+            if (directUrl) return directUrl;
+
+            // 2. خيار احتياطي أخير مع تفضيل رابط العرض بدلاً من i.ibb.co
             try {
                 const fd = new FormData();
                 fd.append("key", IMGBB_API_KEY);
@@ -2043,21 +2046,38 @@
                 const res = await fetchWithTimeout("https://api.imgbb.com/1/upload", { method: "POST", body: fd });
                 if (res.ok) {
                     const json = await res.json();
-                    if (json && json.data && json.data.url) return json.data.url;
+                    if (json && json.data) {
+                        return json.data.url_viewer || json.data.url || null;
+                    }
                 }
             } catch (_) {}
-            return await uploadGeneralFile(new File([blob], "images.jpg", { type: "image/jpeg" }));
+
+            return null;
         }
 
         async function uploadGeneralFile(file) {
+            // 1. gofile.io (الأكثر استقراراً للصور والـ PDF على شبكات الجوال)
             try {
                 const fd1 = new FormData();
                 fd1.append("file", file);
-                const r1 = await fetchWithTimeout("https://tmpfiles.org/api/v1/upload", { method: "POST", body: fd1 });
+                const r1 = await fetchWithTimeout("https://upload.gofile.io/uploadfile", { method: "POST", body: fd1 });
                 if (r1.ok) {
                     const j1 = await r1.json();
-                    if (j1 && j1.data && j1.data.url) {
-                        let url = j1.data.url.replace("http://", "https://");
+                    if (j1 && j1.status === "ok" && j1.data && j1.data.downloadPage) {
+                        return j1.data.downloadPage;
+                    }
+                }
+            } catch (_) {}
+
+            // 2. tmpfiles.org (احتياطي مباشر)
+            try {
+                const fd2 = new FormData();
+                fd2.append("file", file);
+                const r2 = await fetchWithTimeout("https://tmpfiles.org/api/v1/upload", { method: "POST", body: fd2 });
+                if (r2.ok) {
+                    const j2 = await r2.json();
+                    if (j2 && j2.data && j2.data.url) {
+                        let url = j2.data.url.replace("http://", "https://");
                         if (!url.includes("tmpfiles.org/dl/")) {
                             url = url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
                         }
@@ -2066,15 +2086,19 @@
                 }
             } catch (_) {}
 
+            // 3. uguu.se (احتياطي ثالث)
             try {
-                const fd2 = new FormData();
-                fd2.append("files[]", file);
-                const r2 = await fetchWithTimeout("https://uguu.se/upload", { method: "POST", body: fd2 });
-                if (r2.ok) {
-                    const j2 = await r2.json();
-                    if (j2 && j2.success && j2.files && j2.files[0]) return j2.files[0].url;
+                const fd3 = new FormData();
+                fd3.append("files[]", file);
+                const r3 = await fetchWithTimeout("https://uguu.se/upload", { method: "POST", body: fd3 });
+                if (r3.ok) {
+                    const j3 = await r3.json();
+                    if (j3 && j3.success && j3.files && j3.files[0]) {
+                        return j3.files[0].url;
+                    }
                 }
             } catch (_) {}
+
             return null;
         }
 
