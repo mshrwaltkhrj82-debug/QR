@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>استوديو وماسح الـ QR الاحترافي | QR Studio Pro</title>
 
-    <!-- مكتبات قراءة وتوليد الـ QR -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <!-- مكتبات قراءة وتوليد الـ QR مع روابط احتياطية -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" onerror="this.onerror=null;this.src='https://unpkg.com/jsqr@1.4.0/dist/jsQR.js'"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/qrcode@1.5.1/build/qrcode.min.js'"></script>
 
     <!-- خط القاهرة -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&display=swap" rel="stylesheet">
@@ -179,6 +179,7 @@
             padding-top: 14px;
             gap: 10px;
             overflow: hidden;
+            background: #04070d;
         }
 
         #cameraVideo {
@@ -187,7 +188,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: -2;
+            z-index: 0;
             background: #04070d;
             transition: transform 0.2s ease;
         }
@@ -200,7 +201,7 @@
             position: absolute;
             inset: 0;
             background: radial-gradient(circle at center, transparent 30%, rgba(7, 11, 20, 0.72) 80%);
-            z-index: -1;
+            z-index: 1;
             pointer-events: none;
         }
 
@@ -212,6 +213,7 @@
             gap: 8px;
             z-index: 6;
             flex-shrink: 0;
+            position: relative;
         }
 
         .scan-result-box {
@@ -281,6 +283,7 @@
         /* مربع التركيز والليزر */
         .scanner-frame-wrap {
             position: relative;
+            z-index: 4;
             width: min(58vw, 32dvh, 245px);
             height: min(58vw, 32dvh, 245px);
             min-width: 140px;
@@ -329,6 +332,7 @@
             flex-direction: column;
             gap: 10px;
             z-index: 6;
+            position: relative;
             margin-bottom: 6px;
             flex-shrink: 0;
         }
@@ -410,7 +414,6 @@
             }
         }
 
-        /* بطاقة معاينة وتصدير الـ QR */
         .preview-panel {
             background: var(--glass-surface);
             border: 1px solid var(--glass-border);
@@ -488,7 +491,6 @@
         .btn-jpg { background: var(--coral); }
         .btn-share { background: var(--primary); }
 
-        /* لوحة القوالب والإدخال والتخصيص */
         .controls-panel {
             background: var(--glass-surface);
             border: 1px solid var(--glass-border);
@@ -509,7 +511,6 @@
             justify-content: space-between;
         }
 
-        /* شريط اختيار نوع الـ QR */
         .template-tabs {
             display: flex;
             gap: 7px;
@@ -539,7 +540,6 @@
             box-shadow: 0 4px 14px var(--primary-glow);
         }
 
-        /* حقول الإدخال للقوالب */
         .tpl-form {
             display: none;
             flex-direction: column;
@@ -597,7 +597,6 @@
             border-color: var(--accent);
         }
 
-        /* قسم رفع الصور والـ PDF */
         .upload-zone {
             border: 2px dashed rgba(99, 102, 241, 0.55);
             background: rgba(99, 102, 241, 0.07);
@@ -646,7 +645,6 @@
             transition: width 0.25s ease;
         }
 
-        /* قسم تخصيص مظهر الـ QR */
         .style-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1099,14 +1097,42 @@
         let facingMode = "environment";
         let isTorchOn = false;
         let lastScanCheck = 0;
+        let scanTick = 0;
         let scanLoopId = null;
         let toastTimer = null;
         let cameraRequestId = 0;
         let qrRenderSeq = 0;
         let isUploading = false;
+        let barcodeDetector = null;
+        let isDetectingNative = false;
 
         const hiddenCanvas = document.createElement('canvas');
         const hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+
+        // ==================== تهيئة القارئ المدمج بالمتصفح ====================
+        async function initBarcodeDetector() {
+            if (!('BarcodeDetector' in window)) return;
+            try {
+                if (typeof BarcodeDetector.getSupportedFormats === 'function') {
+                    const formats = await BarcodeDetector.getSupportedFormats();
+                    if (!formats.includes('qr_code')) return;
+                }
+                barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+            } catch (_) {
+                barcodeDetector = null;
+            }
+        }
+
+        function extractJsQRText(code) {
+            if (!code) return "";
+            if (code.data && code.data.trim() !== "") return code.data.trim();
+            if (code.binaryData && code.binaryData.length > 0 && typeof TextDecoder !== "undefined") {
+                try {
+                    return new TextDecoder('utf-8').decode(new Uint8Array(code.binaryData)).trim();
+                } catch (_) {}
+            }
+            return "";
+        }
 
         // ==================== دوال مساعدة عامة ====================
         function showToast(msg) {
@@ -1237,6 +1263,7 @@
             }
             cameraVideo.srcObject = null;
             isTorchOn = false;
+            isDetectingNative = false;
             torchBtn.classList.remove('active-torch');
             torchBtn.style.display = "none";
             zoomRow.style.display = "none";
@@ -1245,10 +1272,15 @@
         async function startCamera() {
             stopCamera();
             const reqId = ++cameraRequestId;
+            lastScanCheck = 0;
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                resultText.textContent = "المتصفح لا يدعم الكاميرا المباشرة، اختر صورة من المعرض";
+                resultText.textContent = "الكاميرا تتطلب فتح الصفحة عبر HTTPS، أو استخدم زر (من صورة)";
                 return;
+            }
+
+            if (!barcodeDetector && typeof jsQR !== "function") {
+                resultText.textContent = "تعذر تحميل محرك قراءة الـ QR، تحقق من الإنترنت ثم أعد تحميل الصفحة";
             }
 
             const tries = [
@@ -1265,7 +1297,6 @@
                 } catch (_) {}
             }
 
-            // إذا تغيّر التبويب أو أُطلق طلب أحدث أثناء انتظار صلاحية الكاميرا
             if (reqId !== cameraRequestId || activeView !== "scannerView") {
                 if (stream) stream.getTracks().forEach(t => t.stop());
                 return;
@@ -1277,6 +1308,8 @@
             }
 
             videoStream = stream;
+            cameraVideo.muted = true;
+            cameraVideo.playsInline = true;
             cameraVideo.classList.toggle('mirrored', facingMode === "user");
             cameraVideo.srcObject = videoStream;
             try { await cameraVideo.play(); } catch (_) {}
@@ -1290,6 +1323,9 @@
             if (track && typeof track.getCapabilities === "function") {
                 try {
                     const caps = track.getCapabilities();
+                    if (caps.focusMode && caps.focusMode.includes('continuous')) {
+                        track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+                    }
                     if (caps.torch) {
                         torchBtn.style.display = "flex";
                     }
@@ -1342,34 +1378,69 @@
             }
         });
 
+        function scanCanvasRegion(sx, sy, sw, sh, outW, outH) {
+            hiddenCanvas.width = outW;
+            hiddenCanvas.height = outH;
+            hiddenCtx.drawImage(cameraVideo, sx, sy, sw, sh, 0, 0, outW, outH);
+            const imgData = hiddenCtx.getImageData(0, 0, outW, outH);
+            const code = jsQR(imgData.data, imgData.width, imgData.height, {
+                inversionAttempts: "attemptBoth"
+            });
+            return extractJsQRText(code);
+        }
+
         function scanFrameLoop(ts) {
             if (activeView !== "scannerView" || !videoStream) return;
 
-            if (typeof jsQR === "function" && ts - lastScanCheck > 85 && cameraVideo.readyState >= cameraVideo.HAVE_ENOUGH_DATA) {
+            const ready = cameraVideo.readyState >= 2 && cameraVideo.videoWidth > 0 && cameraVideo.videoHeight > 0;
+
+            if (ready && ts - lastScanCheck >= 110) {
                 lastScanCheck = ts;
-                const vw = cameraVideo.videoWidth;
-                const vh = cameraVideo.videoHeight;
+                scanTick++;
 
-                if (vw > 0 && vh > 0) {
-                    const maxDim = 640;
-                    const scale = Math.min(1, maxDim / Math.max(vw, vh));
-                    const sw = Math.round(vw * scale);
-                    const sh = Math.round(vh * scale);
+                // 1. المسح السريع عبر المحرك المدمج بالمتصفح (إن وجد)
+                if (barcodeDetector && !isDetectingNative) {
+                    isDetectingNative = true;
+                    barcodeDetector.detect(cameraVideo)
+                        .then(codes => {
+                            if (activeView === "scannerView" && codes && codes.length > 0) {
+                                const val = (codes[0].rawValue || "").trim();
+                                if (val) handleDetectedQR(val);
+                            }
+                        })
+                        .catch(() => {})
+                        .finally(() => { isDetectingNative = false; });
+                }
 
-                    hiddenCanvas.width = sw;
-                    hiddenCanvas.height = sh;
-                    hiddenCtx.drawImage(cameraVideo, 0, 0, sw, sh);
+                // 2. المسح الاحتياطي الدقيق عبر jsQR (بالتناوب بين مربع المنتصف والإطار الكامل)
+                if (typeof jsQR === "function") {
+                    const vw = cameraVideo.videoWidth;
+                    const vh = cameraVideo.videoHeight;
+                    let foundText = "";
 
-                    const imgData = hiddenCtx.getImageData(0, 0, sw, sh);
-                    const code = jsQR(imgData.data, imgData.width, imgData.height, {
-                        inversionAttempts: "attemptBoth"
-                    });
+                    try {
+                        if (scanTick % 2 === 0) {
+                            // قص مربع المنتصف بدقة عالية لسهولة قراءة الرموز الصغيرة والكثيفة
+                            const cropSide = Math.round(Math.min(vw, vh) * 0.72);
+                            const sx = Math.round((vw - cropSide) / 2);
+                            const sy = Math.round((vh - cropSide) / 2);
+                            const outSide = Math.min(720, cropSide);
+                            foundText = scanCanvasRegion(sx, sy, cropSide, cropSide, outSide, outSide);
+                        } else {
+                            // مسح الإطار الكامل
+                            const scale = Math.min(1, 800 / Math.max(vw, vh));
+                            const outW = Math.max(1, Math.round(vw * scale));
+                            const outH = Math.max(1, Math.round(vh * scale));
+                            foundText = scanCanvasRegion(0, 0, vw, vh, outW, outH);
+                        }
+                    } catch (_) {}
 
-                    if (code && code.data && code.data.trim() !== "") {
-                        handleDetectedQR(code.data.trim());
+                    if (foundText) {
+                        handleDetectedQR(foundText);
                     }
                 }
             }
+
             scanLoopId = requestAnimationFrame(scanFrameLoop);
         }
 
@@ -1408,7 +1479,7 @@
         }
 
         function handleDetectedQR(data) {
-            if (data === lastScannedData) return;
+            if (!data || data === lastScannedData) return;
             lastScannedData = data;
 
             if (navigator.vibrate) navigator.vibrate(90);
@@ -1469,7 +1540,7 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            if (typeof jsQR !== "function") {
+            if (!barcodeDetector && typeof jsQR !== "function") {
                 showToast("مكتبة قراءة الـ QR غير متاحة، تحقق من الإنترنت");
                 scanFileInput.value = "";
                 return;
@@ -1478,30 +1549,44 @@
             const img = new Image();
             const objUrl = URL.createObjectURL(file);
 
-            img.onload = () => {
-                const scales = [1200, 800, 1600, 500];
-                let found = null;
+            img.onload = async () => {
+                let found = "";
 
-                for (const maxDim of scales) {
-                    let w = img.width;
-                    let h = img.height;
-                    if (w > maxDim || h > maxDim) {
-                        const r = w / h;
-                        if (w > h) { w = maxDim; h = Math.round(maxDim / r); }
-                        else { h = maxDim; w = Math.round(maxDim * r); }
-                    }
-                    const pad = 24;
-                    hiddenCanvas.width = w + pad * 2;
-                    hiddenCanvas.height = h + pad * 2;
-                    hiddenCtx.fillStyle = "#FFFFFF";
-                    hiddenCtx.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-                    hiddenCtx.drawImage(img, pad, pad, w, h);
+                // 1. محاولة القراءة بالمحرك المدمج بالمتصفح أولاً
+                if (barcodeDetector) {
+                    try {
+                        const codes = await barcodeDetector.detect(img);
+                        if (codes && codes.length > 0 && codes[0].rawValue) {
+                            found = codes[0].rawValue.trim();
+                        }
+                    } catch (_) {}
+                }
 
-                    const imgData = hiddenCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-                    const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
-                    if (code && code.data) {
-                        found = code.data.trim();
-                        break;
+                // 2. القراءة عبر jsQR بعدة أحجام
+                if (!found && typeof jsQR === "function") {
+                    const scales = [1200, 800, 1600, 500];
+                    for (const maxDim of scales) {
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > maxDim || h > maxDim) {
+                            const r = w / h;
+                            if (w > h) { w = maxDim; h = Math.round(maxDim / r); }
+                            else { h = maxDim; w = Math.round(maxDim * r); }
+                        }
+                        const pad = 28;
+                        hiddenCanvas.width = w + pad * 2;
+                        hiddenCanvas.height = h + pad * 2;
+                        hiddenCtx.fillStyle = "#FFFFFF";
+                        hiddenCtx.fillRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                        hiddenCtx.drawImage(img, pad, pad, w, h);
+
+                        const imgData = hiddenCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                        const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
+                        const txt = extractJsQRText(code);
+                        if (txt) {
+                            found = txt;
+                            break;
+                        }
                     }
                 }
 
@@ -1696,7 +1781,6 @@
                     return;
                 }
 
-                // رسم الشعار في المنتصف مع الحفاظ على التناسب
                 if (customLogoImg) {
                     const ctx = qrCanvas.getContext('2d');
                     const size = 210;
@@ -1905,7 +1989,6 @@
                                 targetWidth = Math.max(360, Math.floor(targetWidth * (4000 / rawHeight)));
                             }
 
-                            // حماية ضد حد الكانفس في متصفح Safari على iOS (12MP)
                             const maxPixels = 12000000;
                             let estHeight = gap * (loaded.length - 1);
                             loaded.forEach(im => estHeight += Math.round(targetWidth * (im.height / im.width)));
@@ -2104,7 +2187,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             syncWifiPassField();
-            startCamera();
+            initBarcodeDetector().finally(startCamera);
         });
     </script>
 </body>
