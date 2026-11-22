@@ -7,9 +7,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>استوديو وماسح الـ QR الاحترافي | QR Studio Pro</title>
+    <title>ماسح ومنشئ QR</title>
 
-    <!-- مكتبات قراءة وتوليد الـ QR مع روابط احتياطية -->
+    <!-- مكتبات قراءة وإنشاء QR -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" onerror="this.onerror=null;this.src='https://unpkg.com/jsqr@1.4.0/dist/jsQR.js'"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/qrcode@1.5.1/build/qrcode.min.js'"></script>
 
@@ -68,7 +68,7 @@
             touch-action: manipulation;
         }
 
-        /* ==================== إشعارات النظام العائمة (Toast) ==================== */
+        /* ==================== الإشعارات ==================== */
         #toastBox {
             position: fixed;
             top: calc(14px + var(--safe-top));
@@ -130,18 +130,6 @@
             min-width: 0;
         }
 
-        .brand-badge {
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid var(--primary);
-            color: #C7D2FE;
-            -webkit-text-fill-color: #C7D2FE;
-            flex-shrink: 0;
-        }
-
         .sound-toggle {
             width: 36px;
             height: 36px;
@@ -190,7 +178,7 @@
             z-index: 5;
         }
 
-        /* ==================== 1. صفحة الماسح الضوئي ==================== */
+        /* ==================== 1. صفحة المسح ==================== */
         #scannerView {
             display: flex;
             flex-direction: column;
@@ -416,7 +404,7 @@
             color: var(--amber);
         }
 
-        /* ==================== 2. صفحة استوديو التوليد الاحترافي ==================== */
+        /* ==================== 2. صفحة الإنشاء ==================== */
         #generatorView {
             padding: 14px 12px calc(96px + var(--safe-bottom));
         }
@@ -732,7 +720,7 @@
             padding: 0 4px;
         }
 
-        /* ==================== 3. صفحة سجل المحفوظات ==================== */
+        /* ==================== 3. صفحة السجل ==================== */
         #historyView {
             padding: 16px 12px calc(96px + var(--safe-bottom));
         }
@@ -896,34 +884,33 @@
 <body>
 
     <!-- إشعار عائم -->
-    <div id="toastBox">تمت العملية بنجاح ✓</div>
+    <div id="toastBox">تم ✓</div>
 
     <!-- الشريط العلوي -->
     <header class="app-header">
         <div class="brand-title">
-            <span>استوديو الـ QR الذكي</span>
-            <span class="brand-badge">PRO</span>
+            <span>ماسح ومنشئ QR</span>
         </div>
-        <button class="sound-toggle" id="soundToggleBtn" title="تفعيل/كتم الصوت">🔊</button>
+        <button class="sound-toggle" id="soundToggleBtn" title="الصوت">🔊</button>
     </header>
 
     <!-- حاوية الصفحات الثلاث -->
     <main class="views-container">
 
-        <!-- ==================== 1. صفحة الماسح الضوئي ==================== -->
+        <!-- ==================== 1. صفحة المسح ==================== -->
         <section class="view-page active" id="scannerView">
             <video id="cameraVideo" playsinline webkit-playsinline muted autoplay></video>
             <div class="scanner-vignette"></div>
 
             <div class="scan-hud">
                 <div class="scan-result-box" id="scanResultBox">
-                    <span class="scan-type-badge" id="scanTypeBadge">رابط ويب</span>
-                    <div id="resultText">وجّه الكاميرا نحو رمز الـ QR للمسح الفوري</div>
+                    <span class="scan-type-badge" id="scanTypeBadge">رابط</span>
+                    <div id="resultText">وجّه الكاميرا نحو رمز QR</div>
                 </div>
 
                 <div class="scan-action-row" id="scanActionRow">
-                    <button class="hud-btn" id="openActionBtn">فتح الرابط ↗</button>
-                    <button class="hud-btn" id="copyScanBtn">نسخ النص</button>
+                    <button class="hud-btn" id="openActionBtn">فتح ↗</button>
+                    <button class="hud-btn" id="copyScanBtn">نسخ</button>
                     <button class="hud-btn" id="resetScanBtn">مسح جديد</button>
                 </div>
             </div>
@@ -938,7 +925,7 @@
 
             <div class="cam-dock">
                 <div class="zoom-row" id="zoomRow">
-                    <span>تكبير</span>
+                    <span>تقريب</span>
                     <input type="range" id="zoomSlider" min="1" max="5" step="0.1" value="1">
                     <span id="zoomVal">1.0x</span>
                 </div>
@@ -946,13 +933,13 @@
                 <div class="cam-buttons-bar">
                     <button class="dock-btn" id="switchCamBtn">🔄 الكاميرا</button>
                     <button class="dock-btn" id="torchBtn" style="display:none;">🔦 الفلاش</button>
-                    <button class="dock-btn highlight" id="scanGalleryBtn">🖼️ من صورة</button>
+                    <button class="dock-btn highlight" id="scanGalleryBtn">🖼️ من المعرض</button>
                 </div>
             </div>
             <input type="file" id="scanFileInput" accept="image/*" style="display:none">
         </section>
 
-        <!-- ==================== 2. صفحة استوديو التوليد ==================== -->
+        <!-- ==================== 2. صفحة الإنشاء ==================== -->
         <section class="view-page" id="generatorView">
             <div class="studio-grid">
 
@@ -960,10 +947,10 @@
                 <div class="preview-panel">
                     <div class="canvas-container" id="qrCard">
                         <canvas id="qrCanvas" width="1024" height="1024"></canvas>
-                        <div id="qrPlaceholder">اختر نوع المحتوى أو اكتب نصاً لتوليد رمز QR احترافي</div>
+                        <div id="qrPlaceholder">اكتب النص أو اختر ملفاً لإنشاء رمز QR</div>
                     </div>
 
-                    <div id="genStatusText">جاهز للتوليد الفوري...</div>
+                    <div id="genStatusText">بانتظار الإدخال</div>
 
                     <div class="export-bar">
                         <button class="exp-btn btn-png" id="savePngBtn">حفظ PNG</button>
@@ -975,28 +962,28 @@
                 <!-- عمود القوالب والتخصيص -->
                 <div class="controls-panel">
                     <div class="section-label">
-                        <span>1. اختر نوع رمز الـ QR</span>
+                        <span>نوع الرمز</span>
                     </div>
 
                     <div class="template-tabs" id="templateTabs">
-                        <button class="tpl-tab active" data-tpl="text">🔗 نص / رابط</button>
-                        <button class="tpl-tab" data-tpl="files">📁 صور / PDF</button>
-                        <button class="tpl-tab" data-tpl="wifi">📶 شبكة Wi-Fi</button>
+                        <button class="tpl-tab active" data-tpl="text">🔗 نص أو رابط</button>
+                        <button class="tpl-tab" data-tpl="files">📁 صور أو PDF</button>
+                        <button class="tpl-tab" data-tpl="wifi">📶 واي فاي</button>
                         <button class="tpl-tab" data-tpl="whatsapp">💬 واتساب</button>
-                        <button class="tpl-tab" data-tpl="email">✉️ بريد إلكتروني</button>
-                        <button class="tpl-tab" data-tpl="vcard">👤 بطاقة اتصال</button>
+                        <button class="tpl-tab" data-tpl="email">✉️ بريد</button>
+                        <button class="tpl-tab" data-tpl="vcard">👤 جهة اتصال</button>
                     </div>
 
                     <!-- قالب 1: نص أو رابط -->
                     <div class="tpl-form active" id="form-text">
-                        <textarea class="std-textarea" id="inputText" placeholder="اكتب نصاً، رابط موقع، أو أي معلومة..."></textarea>
+                        <textarea class="std-textarea" id="inputText" placeholder="اكتب النص أو الرابط هنا..."></textarea>
                     </div>
 
                     <!-- قالب 2: رفع صور أو PDF -->
                     <div class="tpl-form" id="form-files">
                         <div class="upload-zone" id="uploadTriggerZone">
-                            <h4>اضغط لاختيار عدة صور أو ملف PDF</h4>
-                            <p>يتم دمج الصور تلقائياً واحدة تحت الأخرى وعرضها مباشرة في المتصفح</p>
+                            <h4>اختر صور أو ملف PDF</h4>
+                            <p>يمكنك اختيار عدة صور لتظهر واحدة تحت الأخرى، أو اختيار ملف PDF</p>
                         </div>
                         <div class="progress-track" id="uploadProgressTrack">
                             <div class="progress-bar" id="uploadProgressBar"></div>
@@ -1004,47 +991,47 @@
                         <input type="file" id="uploadFilesInput" accept="image/png,image/jpeg,image/webp,application/pdf" multiple style="display:none">
                     </div>
 
-                    <!-- قالب 3: شبكة Wi-Fi -->
+                    <!-- قالب 3: واي فاي -->
                     <div class="tpl-form" id="form-wifi">
-                        <input type="text" class="std-input" id="wifiSsid" placeholder="اسم الشبكة (SSID)">
+                        <input type="text" class="std-input" id="wifiSsid" placeholder="اسم الشبكة">
                         <div class="field-row">
                             <input type="text" class="std-input" id="wifiPass" placeholder="كلمة المرور">
                             <select class="std-select" id="wifiEnc">
-                                <option value="WPA">حماية WPA/WPA2</option>
-                                <option value="WEP">حماية WEP</option>
+                                <option value="WPA">WPA/WPA2</option>
+                                <option value="WEP">WEP</option>
                                 <option value="nopass">بدون كلمة مرور</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- قالب 4: واتساب مباشر -->
+                    <!-- قالب 4: واتساب -->
                     <div class="tpl-form" id="form-whatsapp">
-                        <input type="tel" class="std-input" id="waPhone" placeholder="رقم الهاتف مع مفتاح الدولة (مثال: 9647700000000)">
-                        <input type="text" class="std-input" id="waMsg" placeholder="رسالة تلقائية اختيارية...">
+                        <input type="tel" class="std-input" id="waPhone" placeholder="رقم الهاتف مع رمز الدولة (مثال: 9647700000000)">
+                        <input type="text" class="std-input" id="waMsg" placeholder="رسالة اختيارية...">
                     </div>
 
                     <!-- قالب 5: بريد إلكتروني -->
                     <div class="tpl-form" id="form-email">
-                        <input type="email" class="std-input" id="mailTo" placeholder="البريد الإلكتروني (example@mail.com)">
-                        <input type="text" class="std-input" id="mailSub" placeholder="عنوان الرسالة">
-                        <input type="text" class="std-input" id="mailBody" placeholder="محتوى الرسالة...">
+                        <input type="email" class="std-input" id="mailTo" placeholder="البريد الإلكتروني">
+                        <input type="text" class="std-input" id="mailSub" placeholder="العنوان">
+                        <input type="text" class="std-input" id="mailBody" placeholder="الرسالة...">
                     </div>
 
-                    <!-- قالب 6: بطاقة جهة اتصال vCard -->
+                    <!-- قالب 6: جهة اتصال -->
                     <div class="tpl-form" id="form-vcard">
                         <div class="field-row">
-                            <input type="text" class="std-input" id="vcName" placeholder="الاسم الكامل">
+                            <input type="text" class="std-input" id="vcName" placeholder="الاسم">
                             <input type="tel" class="std-input" id="vcPhone" placeholder="رقم الهاتف">
                         </div>
                         <div class="field-row">
                             <input type="email" class="std-input" id="vcEmail" placeholder="البريد الإلكتروني">
-                            <input type="text" class="std-input" id="vcOrg" placeholder="الشركة / المؤسسة">
+                            <input type="text" class="std-input" id="vcOrg" placeholder="جهة العمل (اختياري)">
                         </div>
                     </div>
 
-                    <!-- تخصيص الألوان والشعار -->
+                    <!-- الألوان والشعار -->
                     <div class="section-label" style="margin-top:2px;">
-                        <span>2. تخصيص الألوان والشعار الأوسط</span>
+                        <span>الألوان والشعار</span>
                     </div>
 
                     <div class="style-grid">
@@ -1057,7 +1044,7 @@
                             <input type="color" id="qrLightColor" value="#FFFFFF">
                         </div>
                         <div class="color-item">
-                            <span>شعار بالمنتصف</span>
+                            <span>الشعار</span>
                             <button class="logo-btn" id="pickLogoBtn">+ إضافة شعار</button>
                             <input type="file" id="logoFileInput" accept="image/*" style="display:none">
                         </div>
@@ -1067,12 +1054,12 @@
             </div>
         </section>
 
-        <!-- ==================== 3. صفحة سجل المحفوظات ==================== -->
+        <!-- ==================== 3. صفحة السجل ==================== -->
         <section class="view-page" id="historyView">
             <div class="history-container">
                 <div class="history-top-bar">
-                    <span class="section-label">سجل العمليات الأخيرة (محفوظ محلياً)</span>
-                    <button class="clear-hist-btn" id="clearHistoryBtn">مسح السجل</button>
+                    <span class="section-label">السجل</span>
+                    <button class="clear-hist-btn" id="clearHistoryBtn">حذف الكل</button>
                 </div>
                 <div class="history-list" id="historyList"></div>
             </div>
@@ -1082,21 +1069,30 @@
 
     <!-- شريط التنقل السفلي -->
     <nav class="bottom-nav">
-        <button class="nav-tab active" data-target="scannerView">📷 الماسح</button>
-        <button class="nav-tab" data-target="generatorView">✨ التوليد</button>
+        <button class="nav-tab active" data-target="scannerView">📷 مسح</button>
+        <button class="nav-tab" data-target="generatorView">➕ إنشاء</button>
         <button class="nav-tab" data-target="historyView">🕘 السجل</button>
     </nav>
 
     <script>
         const IMGBB_API_KEY = "d6e15cb5b6c12b8e7157afee611aa441";
 
-        // عناصر النظام العامة
+        const TEMPLATE_LABELS = {
+            text: "نص",
+            files: "ملف",
+            wifi: "واي فاي",
+            whatsapp: "واتساب",
+            email: "بريد",
+            vcard: "جهة اتصال"
+        };
+
+        // عناصر الصفحة
         const toastBox = document.getElementById('toastBox');
         const soundToggleBtn = document.getElementById('soundToggleBtn');
         const navTabs = document.querySelectorAll('.nav-tab');
         const viewPages = document.querySelectorAll('.view-page');
 
-        // عناصر الماسح
+        // عناصر المسح
         const cameraVideo = document.getElementById('cameraVideo');
         const scanResultBox = document.getElementById('scanResultBox');
         const scanTypeBadge = document.getElementById('scanTypeBadge');
@@ -1114,7 +1110,7 @@
         const scanGalleryBtn = document.getElementById('scanGalleryBtn');
         const scanFileInput = document.getElementById('scanFileInput');
 
-        // عناصر التوليد
+        // عناصر الإنشاء
         const qrCard = document.getElementById('qrCard');
         const qrCanvas = document.getElementById('qrCanvas');
         const qrPlaceholder = document.getElementById('qrPlaceholder');
@@ -1166,11 +1162,11 @@
         const hiddenCanvas = document.createElement('canvas');
         const hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
 
-        // منع التكبير باللمس المزدوج أو القرص على iOS
+        // منع التكبير باللمس على iOS
         document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
         document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
 
-        // ==================== تهيئة القارئ المدمج بالمتصفح ====================
+        // ==================== القارئ المدمج بالمتصفح ====================
         async function initBarcodeDetector() {
             if (!('BarcodeDetector' in window)) return;
             try {
@@ -1195,7 +1191,7 @@
             return "";
         }
 
-        // ==================== دوال مساعدة عامة ====================
+        // ==================== دوال مساعدة ====================
         function showToast(msg) {
             toastBox.textContent = msg;
             toastBox.classList.add('show');
@@ -1271,11 +1267,11 @@
             });
         }
 
-        // ==================== صوت النظام ====================
+        // ==================== الصوت ====================
         soundToggleBtn.addEventListener('click', () => {
             soundEnabled = !soundEnabled;
             soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
-            showToast(soundEnabled ? "تم تفعيل التنبيه الصوتي" : "تم كتم الصوت");
+            showToast(soundEnabled ? "تم تشغيل الصوت" : "تم كتم الصوت");
         });
 
         function playBeep() {
@@ -1324,7 +1320,7 @@
             });
         });
 
-        // ==================== إدارة الكاميرا والمسح الذكي ====================
+        // ==================== الكاميرا والمسح ====================
         function stopCamera() {
             cameraRequestId++;
             if (scanLoopId) {
@@ -1349,12 +1345,12 @@
             lastScanCheck = 0;
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                resultText.textContent = "الكاميرا تتطلب فتح الصفحة عبر HTTPS، أو استخدم زر (من صورة)";
+                resultText.textContent = "الكاميرا لا تعمل هنا، اختر صورة من المعرض";
                 return;
             }
 
             if (!barcodeDetector && typeof jsQR !== "function") {
-                resultText.textContent = "تعذر تحميل محرك قراءة الـ QR، تحقق من الإنترنت ثم أعد تحميل الصفحة";
+                resultText.textContent = "تأكد من الإنترنت وأعد فتح الصفحة";
             }
 
             const tries = [
@@ -1377,7 +1373,7 @@
             }
 
             if (!stream) {
-                resultText.textContent = "تعذر تشغيل الكاميرا، تأكد من منح الصلاحية أو امسح من صورة";
+                resultText.textContent = "تعذر تشغيل الكاميرا، تأكد من السماح بالوصول أو اختر صورة";
                 return;
             }
 
@@ -1448,7 +1444,7 @@
                 isTorchOn = nextState;
                 torchBtn.classList.toggle('active-torch', isTorchOn);
             } catch (_) {
-                showToast("الفلاش غير مدعوم في هذه العدسة");
+                showToast("الفلاش غير متوفر");
             }
         });
 
@@ -1517,34 +1513,34 @@
         function parseScannedPayload(raw) {
             const lower = raw.toLowerCase();
             if (lower.startsWith("http://") || lower.startsWith("https://")) {
-                return { type: "رابط موقع", actionText: "فتح الرابط ↗", href: raw, display: raw };
+                return { type: "رابط", actionText: "فتح ↗", href: raw, display: raw };
             }
             if (/^www\.[^\s]+\.[^\s]+/i.test(raw)) {
-                return { type: "رابط موقع", actionText: "فتح الرابط ↗", href: "https://" + raw, display: raw };
+                return { type: "رابط", actionText: "فتح ↗", href: "https://" + raw, display: raw };
             }
             if (lower.startsWith("mailto:") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
                 const cleanEmail = raw.replace(/^mailto:/i, '').split('?')[0];
-                return { type: "بريد إلكتروني", actionText: "إرسال بريد ✉️", href: lower.startsWith("mailto:") ? raw : "mailto:" + cleanEmail, display: cleanEmail };
+                return { type: "بريد", actionText: "مراسلة ✉️", href: lower.startsWith("mailto:") ? raw : "mailto:" + cleanEmail, display: cleanEmail };
             }
             if (lower.startsWith("tel:") || /^\+?[0-9\s\-]{7,16}$/.test(raw)) {
                 const cleanTel = raw.replace(/^tel:/i, '').trim();
-                return { type: "رقم هاتف", actionText: "اتصال هاتفي 📞", href: "tel:" + cleanTel.replace(/\s+/g, ''), display: cleanTel };
+                return { type: "رقم هاتف", actionText: "اتصال 📞", href: "tel:" + cleanTel.replace(/\s+/g, ''), display: cleanTel };
             }
             if (lower.startsWith("wifi:")) {
                 const ssidMatch = raw.match(/(?:^|[^\\]);?S:((?:\\.|[^;])*)/i);
                 const passMatch = raw.match(/(?:^|[^\\]);P:((?:\\.|[^;])*)/i);
                 const ssid = ssidMatch && ssidMatch[1] ? unescapeWifiValue(ssidMatch[1]) : "غير معروف";
                 const pass = passMatch && passMatch[1] ? unescapeWifiValue(passMatch[1]) : "بدون كلمة مرور";
-                return { type: "شبكة Wi-Fi", actionText: "", href: "", display: `الشبكة: ${ssid} | الرمز: ${pass}` };
+                return { type: "واي فاي", actionText: "", href: "", display: `الشبكة: ${ssid} | الرمز: ${pass}` };
             }
             if (lower.startsWith("begin:vcard")) {
                 const fnMatch = raw.match(/FN:(.+)/i);
                 const telMatch = raw.match(/TEL[^:]*:(.+)/i);
                 const name = fnMatch ? fnMatch[1].trim() : "جهة اتصال";
                 const phone = telMatch ? telMatch[1].trim() : "";
-                return { type: "بطاقة اتصال", actionText: phone ? "اتصال 📞" : "", href: phone ? `tel:${phone.replace(/\s+/g, '')}` : "", display: `${name}${phone ? ' - ' + phone : ''}` };
+                return { type: "جهة اتصال", actionText: phone ? "اتصال 📞" : "", href: phone ? `tel:${phone.replace(/\s+/g, '')}` : "", display: `${name}${phone ? ' - ' + phone : ''}` };
             }
-            return { type: "نص مقروء", actionText: "", href: "", display: raw };
+            return { type: "نص", actionText: "", href: "", display: raw };
         }
 
         function handleDetectedQR(data) {
@@ -1591,14 +1587,14 @@
         copyScanBtn.addEventListener('click', async () => {
             if (!lastScannedData) return;
             const ok = await copyTextSafe(resultText.textContent);
-            showToast(ok ? "تم نسخ النتيجة إلى الحافظة ✓" : "تعذر النسخ على هذا المتصفح");
+            showToast(ok ? "تم النسخ ✓" : "تعذر النسخ");
         });
 
         resetScanBtn.addEventListener('click', () => {
             lastScannedData = "";
             currentActionHref = "";
             scanTypeBadge.style.display = "none";
-            resultText.textContent = "وجّه الكاميرا نحو رمز الـ QR للمسح الفوري";
+            resultText.textContent = "وجّه الكاميرا نحو رمز QR";
             scanActionRow.style.display = "none";
         });
 
@@ -1609,7 +1605,7 @@
             if (!file) return;
 
             if (!barcodeDetector && typeof jsQR !== "function") {
-                showToast("مكتبة قراءة الـ QR غير متاحة، تحقق من الإنترنت");
+                showToast("تأكد من اتصال الإنترنت");
                 scanFileInput.value = "";
                 return;
             }
@@ -1661,22 +1657,22 @@
                 if (found) {
                     lastScannedData = "";
                     handleDetectedQR(found);
-                    showToast("تمت قراءة رمز الـ QR من الصورة ✓");
+                    showToast("تمت القراءة ✓");
                 } else {
-                    showToast("لم يتم العثور على رمز QR واضح في الصورة");
+                    showToast("لم يتم العثور على رمز في الصورة");
                 }
             };
 
             img.onerror = () => {
                 URL.revokeObjectURL(objUrl);
-                showToast("تعذر قراءة ملف الصورة المختار");
+                showToast("تعذر فتح الصورة");
             };
 
             img.src = objUrl;
             scanFileInput.value = "";
         });
 
-        // ==================== استوديو التوليد والقوالب الذكية ====================
+        // ==================== إنشاء الرموز ====================
         function syncWifiPassField() {
             const noPass = wifiEncSelect.value === "nopass";
             wifiPassInput.disabled = noPass;
@@ -1706,7 +1702,7 @@
             qrCanvas.style.display = "none";
             qrPlaceholder.style.display = "block";
             genStatusText.style.color = "var(--text-secondary)";
-            genStatusText.textContent = "جاهز للتوليد الفوري...";
+            genStatusText.textContent = "بانتظار الإدخال";
         }
 
         function buildPayloadFromActiveTemplate() {
@@ -1810,7 +1806,7 @@
             };
             img.onerror = () => {
                 URL.revokeObjectURL(objUrl);
-                showToast("تعذر تحميل صورة الشعار");
+                showToast("تعذر فتح صورة الشعار");
             };
             img.src = objUrl;
             logoFileInput.value = "";
@@ -1819,7 +1815,7 @@
         function renderStyledQR(payload) {
             if (typeof QRCode === "undefined") {
                 genStatusText.style.color = "#F43F5E";
-                genStatusText.textContent = "مكتبة التوليد غير متاحة، تحقق من اتصال الإنترنت";
+                genStatusText.textContent = "تأكد من اتصال الإنترنت";
                 return;
             }
 
@@ -1843,7 +1839,7 @@
                     qrCanvas.style.display = "none";
                     qrPlaceholder.style.display = "block";
                     genStatusText.style.color = "#F43F5E";
-                    genStatusText.textContent = "النص طويل جداً لتضمينه في رمز QR";
+                    genStatusText.textContent = "النص طويل جداً";
                     return;
                 }
 
@@ -1874,11 +1870,11 @@
                 qrCanvas.style.display = "block";
                 hasGeneratedQR = true;
                 genStatusText.style.color = "#00F5D4";
-                genStatusText.textContent = "تم توليد رمز الـ QR بدقة 1024px جاهزة للطباعة ✓";
+                genStatusText.textContent = "الرمز جاهز للحفظ والمشاركة ✓";
             });
         }
 
-        // ==================== حفظ ومشاركة رمز الـ QR ====================
+        // ==================== الحفظ والمشاركة ====================
         function triggerDownload(href, filename, revokeAfter) {
             const a = document.createElement('a');
             a.download = filename;
@@ -1891,16 +1887,16 @@
 
         function downloadGeneratedQR(asPng) {
             if (!hasGeneratedQR) {
-                showToast("قم بتوليد رمز QR أولاً قبل الحفظ");
+                showToast("أنشئ الرمز أولاً");
                 return;
             }
             const ext = asPng ? "png" : "jpg";
             const mime = asPng ? "image/png" : "image/jpeg";
-            const filename = `QR_Pro_${Date.now()}.${ext}`;
+            const filename = `QR_${Date.now()}.${ext}`;
 
             const finalize = () => {
-                saveToHistory("توليد", currentTemplate.toUpperCase(), currentQRPayload, currentQRPayload);
-                showToast(`تم حفظ الرمز بصيغة ${ext.toUpperCase()} ✓`);
+                saveToHistory("إنشاء", TEMPLATE_LABELS[currentTemplate] || "نص", currentQRPayload, currentQRPayload);
+                showToast("تم الحفظ ✓");
             };
 
             if (typeof qrCanvas.toBlob === "function") {
@@ -1924,7 +1920,7 @@
 
         shareQrBtn.addEventListener('click', () => {
             if (!hasGeneratedQR) {
-                showToast("قم بتوليد رمز QR أولاً للمشاركة");
+                showToast("أنشئ الرمز أولاً");
                 return;
             }
             qrCanvas.toBlob(async (blob) => {
@@ -1932,7 +1928,7 @@
                     downloadGeneratedQR(true);
                     return;
                 }
-                const file = new File([blob], "QR_Studio_Pro.png", { type: "image/png" });
+                const file = new File([blob], "QR.png", { type: "image/png" });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({ title: "رمز QR", files: [file] });
@@ -1945,7 +1941,7 @@
             }, "image/png");
         });
 
-        // ==================== دمج الصور عمودياً ورفع الملفات ====================
+        // ==================== دمج الصور ورفع الملفات ====================
         uploadTriggerZone.addEventListener('click', () => {
             if (!isUploading) uploadFilesInput.click();
         });
@@ -1980,7 +1976,7 @@
             const imgFiles = files.filter(f => f.type.startsWith("image/"));
 
             if (pdfFiles.length === 0 && imgFiles.length === 0) {
-                showToast("الرجاء اختيار صور أو ملف PDF فقط");
+                showToast("اختر صور أو ملف PDF فقط");
                 return;
             }
 
@@ -1991,19 +1987,19 @@
             genStatusText.style.color = "var(--accent)";
 
             let uploadedUrl = null;
-            let historyLabel = "رابط ملف";
+            let historyLabel = "ملف";
 
             try {
                 if (pdfFiles.length > 0) {
-                    historyLabel = "ملف PDF";
-                    genStatusText.textContent = "جاري رفع ملف الـ PDF وتوليد الرمز...";
+                    historyLabel = "PDF";
+                    genStatusText.textContent = "جاري رفع الملف...";
                     uploadProgressBar.style.width = "55%";
                     uploadedUrl = await uploadGeneralFile(pdfFiles[0]);
                 } else if (imgFiles.length > 0) {
-                    historyLabel = imgFiles.length > 1 ? "صور متتالية" : "صورة";
+                    historyLabel = imgFiles.length > 1 ? "صور" : "صورة";
                     genStatusText.textContent = imgFiles.length > 1
-                        ? `جاري دمج ${imgFiles.length} صور ورفعها...`
-                        : "جاري تحسين ورفع الصورة...";
+                        ? "جاري تجهيز ورفع الصور..."
+                        : "جاري رفع الصورة...";
                     const mergedBlob = await combineImagesVertically(imgFiles, 920);
                     uploadProgressBar.style.width = "65%";
                     uploadedUrl = await uploadImageRaw(mergedBlob);
@@ -2020,11 +2016,11 @@
 
             if (uploadedUrl) {
                 renderStyledQR(uploadedUrl);
-                saveToHistory("توليد ملف", historyLabel, uploadedUrl, uploadedUrl);
-                showToast("تم الرفع وتوليد رمز الـ QR بنجاح ✓");
+                saveToHistory("إنشاء", historyLabel, uploadedUrl, uploadedUrl);
+                showToast("تم إنشاء الرمز ✓");
             } else {
                 genStatusText.style.color = "#F43F5E";
-                genStatusText.textContent = "تعذر الرفع، تحقق من الإنترنت وحاول مجدداً";
+                genStatusText.textContent = "فشل الرفع، تأكد من الإنترنت وحاول مرة أخرى";
             }
         }
 
@@ -2112,7 +2108,6 @@
         async function uploadImageRaw(blob) {
             const imgFile = new File([blob], `qr_${Date.now()}.jpg`, { type: "image/jpeg" });
 
-            // 1. الرفع على نفس سيرفر موقعك (إذا كان مفعّلاً على Cloudflare Workers)
             try {
                 const fdSelf = new FormData();
                 fdSelf.append("file", imgFile);
@@ -2123,7 +2118,6 @@
                 }
             } catch (_) {}
 
-            // 2. الرفع عبر ImgBB بصيغة Base64 (سريع ومستقر) ثم عرض الصورة خاماً عبر Cloudflare wsrv.nl
             try {
                 const b64 = await blobToBase64(blob);
                 const body = new URLSearchParams();
@@ -2145,7 +2139,6 @@
                 }
             } catch (_) {}
 
-            // 3. احتياطي: tmpfiles.org مع عرضه كصورة خام عبر wsrv.nl بدون صفحة الموقع
             try {
                 const fd2 = new FormData();
                 fd2.append("file", imgFile);
@@ -2162,7 +2155,6 @@
                 }
             } catch (_) {}
 
-            // 4. احتياطي أخير: gofile.io
             return await uploadGeneralFile(imgFile);
         }
 
@@ -2208,7 +2200,7 @@
             return null;
         }
 
-        // ==================== إدارة سجل المحفوظات (LocalStorage) ====================
+        // ==================== السجل ====================
         function getHistory() {
             try {
                 const parsed = JSON.parse(localStorage.getItem("qr_studio_pro_history") || "[]");
@@ -2240,7 +2232,7 @@
             if (list.length === 0) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.style.cssText = "text-align:center;color:var(--text-secondary);padding:40px 10px;";
-                emptyDiv.textContent = "لا توجد عمليات مسح أو توليد محفوظة حتى الآن";
+                emptyDiv.textContent = "السجل فارغ";
                 historyList.appendChild(emptyDiv);
                 return;
             }
@@ -2307,7 +2299,7 @@
                 localStorage.removeItem("qr_studio_pro_history");
             } catch (_) {}
             renderHistoryList();
-            showToast("تم مسح السجل بالكامل");
+            showToast("تم حذف السجل");
         });
 
         document.addEventListener('visibilitychange', () => {
