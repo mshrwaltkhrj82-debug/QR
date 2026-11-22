@@ -83,7 +83,7 @@
             color: var(--text-primary);
             padding: 9px 18px;
             border-radius: 999px;
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 700;
             z-index: 9999;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65);
@@ -156,7 +156,10 @@
 
         .view-page {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             width: 100%;
             height: 100%;
             overflow-x: hidden;
@@ -166,52 +169,81 @@
             touch-action: pan-y;
             padding-bottom: calc(92px + var(--safe-bottom));
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
-            transform: scale(0.985);
-            transition: opacity 0.22s ease, transform 0.22s ease;
+            transition: opacity 0.2s ease;
         }
 
         .view-page.active {
             opacity: 1;
+            visibility: visible;
             pointer-events: auto;
-            transform: scale(1);
             z-index: 5;
         }
 
-        /* ==================== 1. صفحة المسح ==================== */
+        /* ==================== 1. صفحة المسح (كاميرا ملء الشاشة) ==================== */
         #scannerView {
+            display: block;
+            padding: 0;
+            overflow: hidden;
+            touch-action: none;
+            background: #000;
+        }
+
+        .camera-stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            background: #000;
+        }
+
+        #cameraVideo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            min-width: 100%;
+            min-height: 100%;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            object-position: center center;
+            display: block;
+            background: #000;
+        }
+
+        #cameraVideo.mirrored {
+            transform: translate(-50%, -50%) scaleX(-1);
+        }
+
+        .scanner-vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, transparent 36%, rgba(7, 11, 20, 0.58) 88%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .scanner-ui-layer {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
             padding: 12px 14px calc(86px + var(--safe-bottom));
             gap: 10px;
-            overflow: hidden;
-            touch-action: none;
-            background: #04070d;
-        }
-
-        #cameraVideo {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            background: #04070d;
-            transition: transform 0.2s ease;
-        }
-
-        #cameraVideo.mirrored {
-            transform: scaleX(-1);
-        }
-
-        .scanner-vignette {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, transparent 30%, rgba(7, 11, 20, 0.72) 80%);
-            z-index: 1;
-            pointer-events: none;
         }
 
         .scan-hud {
@@ -220,9 +252,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            z-index: 6;
             flex-shrink: 0;
-            position: relative;
         }
 
         .scan-result-box {
@@ -238,7 +268,7 @@
             align-items: center;
             gap: 6px;
             text-align: center;
-            transition: all 0.25s ease;
+            transition: border-color 0.25s ease;
         }
 
         .scan-type-badge {
@@ -265,7 +295,7 @@
 
         .scan-action-row {
             display: none;
-            gap: 8px;
+            gap: 7px;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -275,27 +305,27 @@
             padding: 0 14px;
             border-radius: 999px;
             border: 1px solid rgba(255, 255, 255, 0.18);
-            font-size: 0.83rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: #fff;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
         }
 
         #openActionBtn { background: var(--primary); display: none; }
+        #secondaryActionBtn { background: var(--emerald); display: none; }
         #copyScanBtn { background: var(--bg-secondary); border-color: var(--accent); color: var(--accent); }
         #resetScanBtn { background: rgba(244, 63, 94, 0.85); }
 
         .scanner-frame-wrap {
             position: relative;
-            z-index: 4;
-            width: min(56vw, 30dvh, 235px);
-            height: min(56vw, 30dvh, 235px);
-            min-width: 140px;
-            min-height: 140px;
+            width: min(60vw, 31dvh, 245px);
+            height: min(60vw, 31dvh, 245px);
+            min-width: 145px;
+            min-height: 145px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -339,8 +369,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            z-index: 6;
-            position: relative;
             flex-shrink: 0;
         }
 
@@ -899,41 +927,46 @@
 
         <!-- ==================== 1. صفحة المسح ==================== -->
         <section class="view-page active" id="scannerView">
-            <video id="cameraVideo" playsinline webkit-playsinline muted autoplay></video>
-            <div class="scanner-vignette"></div>
-
-            <div class="scan-hud">
-                <div class="scan-result-box" id="scanResultBox">
-                    <span class="scan-type-badge" id="scanTypeBadge">رابط</span>
-                    <div id="resultText">وجّه الكاميرا نحو رمز QR</div>
-                </div>
-
-                <div class="scan-action-row" id="scanActionRow">
-                    <button class="hud-btn" id="openActionBtn">فتح ↗</button>
-                    <button class="hud-btn" id="copyScanBtn">نسخ</button>
-                    <button class="hud-btn" id="resetScanBtn">مسح جديد</button>
-                </div>
+            <div class="camera-stage">
+                <video id="cameraVideo" playsinline webkit-playsinline muted autoplay></video>
+                <div class="scanner-vignette"></div>
             </div>
 
-            <div class="scanner-frame-wrap">
-                <div class="corner tl"></div>
-                <div class="corner tr"></div>
-                <div class="corner bl"></div>
-                <div class="corner br"></div>
-                <div class="laser-line"></div>
-            </div>
+            <div class="scanner-ui-layer">
+                <div class="scan-hud">
+                    <div class="scan-result-box" id="scanResultBox">
+                        <span class="scan-type-badge" id="scanTypeBadge">رابط</span>
+                        <div id="resultText">وجّه الكاميرا نحو رمز QR</div>
+                    </div>
 
-            <div class="cam-dock">
-                <div class="zoom-row" id="zoomRow">
-                    <span>تقريب</span>
-                    <input type="range" id="zoomSlider" min="1" max="5" step="0.1" value="1">
-                    <span id="zoomVal">1.0x</span>
+                    <div class="scan-action-row" id="scanActionRow">
+                        <button class="hud-btn" id="openActionBtn">فتح ↗</button>
+                        <button class="hud-btn" id="secondaryActionBtn">اتصال 📞</button>
+                        <button class="hud-btn" id="copyScanBtn">نسخ</button>
+                        <button class="hud-btn" id="resetScanBtn">مسح جديد</button>
+                    </div>
                 </div>
 
-                <div class="cam-buttons-bar">
-                    <button class="dock-btn" id="switchCamBtn">🔄 الكاميرا</button>
-                    <button class="dock-btn" id="torchBtn" style="display:none;">🔦 الفلاش</button>
-                    <button class="dock-btn highlight" id="scanGalleryBtn">🖼️ من المعرض</button>
+                <div class="scanner-frame-wrap">
+                    <div class="corner tl"></div>
+                    <div class="corner tr"></div>
+                    <div class="corner bl"></div>
+                    <div class="corner br"></div>
+                    <div class="laser-line"></div>
+                </div>
+
+                <div class="cam-dock">
+                    <div class="zoom-row" id="zoomRow">
+                        <span>تقريب</span>
+                        <input type="range" id="zoomSlider" min="1" max="5" step="0.1" value="1">
+                        <span id="zoomVal">1.0x</span>
+                    </div>
+
+                    <div class="cam-buttons-bar">
+                        <button class="dock-btn" id="switchCamBtn">🔄 الكاميرا</button>
+                        <button class="dock-btn" id="torchBtn" style="display:none;">🔦 الفلاش</button>
+                        <button class="dock-btn highlight" id="scanGalleryBtn">🖼️ من المعرض</button>
+                    </div>
                 </div>
             </div>
             <input type="file" id="scanFileInput" accept="image/*" style="display:none">
@@ -1086,6 +1119,10 @@
             vcard: "جهة اتصال"
         };
 
+        const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const IS_ANDROID = /Android/i.test(navigator.userAgent);
+
         // عناصر الصفحة
         const toastBox = document.getElementById('toastBox');
         const soundToggleBtn = document.getElementById('soundToggleBtn');
@@ -1099,6 +1136,7 @@
         const resultText = document.getElementById('resultText');
         const scanActionRow = document.getElementById('scanActionRow');
         const openActionBtn = document.getElementById('openActionBtn');
+        const secondaryActionBtn = document.getElementById('secondaryActionBtn');
         const copyScanBtn = document.getElementById('copyScanBtn');
         const resetScanBtn = document.getElementById('resetScanBtn');
         const corners = document.querySelectorAll('.corner');
@@ -1141,7 +1179,9 @@
         let activeView = "scannerView";
         let currentTemplate = "text";
         let lastScannedData = "";
-        let currentActionHref = "";
+        let currentScanAction = null;
+        let currentSecondaryHref = "";
+        let currentCopyText = "";
         let hasGeneratedQR = false;
         let currentQRPayload = "";
         let customLogoImg = null;
@@ -1191,12 +1231,121 @@
             return "";
         }
 
+        // ==================== محرك قراءة الـ QR الملون بأي لون ====================
+        function runJsQR(rgbaData, w, h) {
+            if (typeof jsQR !== "function") return "";
+            const code = jsQR(rgbaData, w, h, { inversionAttempts: "attemptBoth" });
+            return extractJsQRText(code);
+        }
+
+        function buildColorSeparatedRGBA(src, w, h, mode) {
+            const len = src.length;
+            const pixelCount = w * h;
+            const vals = new Float32Array(pixelCount);
+            let minV = Infinity;
+            let maxV = -Infinity;
+
+            if (mode === "dist") {
+                // حساب متوسط لون الحواف لفصل أي لونين عن بعضهما (مثل أحمر على أزرق أو أخضر على أصفر)
+                let bgR = 0, bgG = 0, bgB = 0, samples = 0;
+                const stepX = Math.max(1, Math.floor(w / 18));
+                const stepY = Math.max(1, Math.floor(h / 18));
+                for (let x = 0; x < w; x += stepX) {
+                    const t = x * 4;
+                    const b = ((h - 1) * w + x) * 4;
+                    bgR += src[t] + src[b];
+                    bgG += src[t + 1] + src[b + 1];
+                    bgB += src[t + 2] + src[b + 2];
+                    samples += 2;
+                }
+                for (let y = 0; y < h; y += stepY) {
+                    const l = (y * w) * 4;
+                    const r = (y * w + (w - 1)) * 4;
+                    bgR += src[l] + src[r];
+                    bgG += src[l + 1] + src[r + 1];
+                    bgB += src[l + 2] + src[r + 2];
+                    samples += 2;
+                }
+                bgR /= samples;
+                bgG /= samples;
+                bgB /= samples;
+
+                for (let p = 0, i = 0; i < len; i += 4, p++) {
+                    const dr = src[i] - bgR;
+                    const dg = src[i + 1] - bgG;
+                    const db = src[i + 2] - bgB;
+                    const d = Math.sqrt(dr * dr + dg * dg + db * db);
+                    vals[p] = d;
+                    if (d < minV) minV = d;
+                    if (d > maxV) maxV = d;
+                }
+            } else {
+                for (let p = 0, i = 0; i < len; i += 4, p++) {
+                    const r = src[i];
+                    const g = src[i + 1];
+                    const b = src[i + 2];
+                    let v = 0;
+                    if (mode === "r") v = r;
+                    else if (mode === "g") v = g;
+                    else if (mode === "b") v = b;
+                    else if (mode === "sat") v = Math.max(r, g, b) - Math.min(r, g, b);
+                    else if (mode === "rg") v = r - g;
+                    else if (mode === "rb") v = r - b;
+                    else if (mode === "gb") v = g - b;
+                    else v = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                    vals[p] = v;
+                    if (v < minV) minV = v;
+                    if (v > maxV) maxV = v;
+                }
+            }
+
+            const range = maxV - minV;
+            if (range < 8) return null;
+
+            const out = new Uint8ClampedArray(len);
+            const scale = 255 / range;
+            const invert = (mode === "dist" || mode === "sat");
+
+            for (let p = 0, i = 0; i < len; i += 4, p++) {
+                let gray = Math.round((vals[p] - minV) * scale);
+                if (invert) gray = 255 - gray;
+                out[i] = gray;
+                out[i + 1] = gray;
+                out[i + 2] = gray;
+                out[i + 3] = 255;
+            }
+            return out;
+        }
+
+        function decodeAnyColorImageData(imgData, tryAllModes = false, specificMode = null) {
+            const { data, width, height } = imgData;
+
+            if (!specificMode) {
+                const rawRes = runJsQR(data, width, height);
+                if (rawRes) return rawRes;
+            }
+
+            const modes = specificMode
+                ? [specificMode]
+                : (tryAllModes ? ["sat", "b", "r", "g", "dist", "rg", "rb", "gb", "luma"] : []);
+
+            for (const m of modes) {
+                const separated = buildColorSeparatedRGBA(data, width, height, m);
+                if (separated) {
+                    const res = runJsQR(separated, width, height);
+                    if (res) return res;
+                }
+            }
+            return "";
+        }
+
         // ==================== دوال مساعدة ====================
         function showToast(msg) {
             toastBox.textContent = msg;
             toastBox.classList.add('show');
             clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toastBox.classList.remove('show'), 2400);
+            toastTimer = setTimeout(() => toastBox.classList.remove('show'), 2800);
         }
 
         async function copyTextSafe(text) {
@@ -1244,6 +1393,26 @@
             return str.replace(/\\([\\;,:"])/g, '$1');
         }
 
+        function escapeXml(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&apos;");
+        }
+
+        function makeUUID() {
+            if (window.crypto && typeof window.crypto.randomUUID === "function") {
+                return window.crypto.randomUUID().toUpperCase();
+            }
+            return "XXXXXXXX-XXXX-4XXX-YXXX-XXXXXXXXXXXX".replace(/[XY]/g, (c) => {
+                const r = Math.random() * 16 | 0;
+                const v = c === "X" ? r : (r & 0x3 | 0x8);
+                return v.toString(16).toUpperCase();
+            });
+        }
+
         async function fetchWithTimeout(url, options = {}, timeoutMs = 25000) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -1265,6 +1434,127 @@
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
             });
+        }
+
+        // ==================== إجراءات الواي فاي وجهات الاتصال ====================
+        async function connectToWifiNetwork(wifiInfo) {
+            const { ssid, pass, enc, hidden } = wifiInfo;
+            if (pass) {
+                await copyTextSafe(pass);
+            }
+
+            if (IS_IOS) {
+                const encType = enc === "WEP" ? "WEP" : (enc === "nopass" || !pass ? "None" : "WPA2");
+                const payloadUUID = makeUUID();
+                const rootUUID = makeUUID();
+                const passBlock = encType !== "None"
+                    ? `\n            <key>Password</key>\n            <string>${escapeXml(pass)}</string>`
+                    : "";
+
+                const profileXml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>AutoJoin</key>
+            <true/>
+            <key>EncryptionType</key>
+            <string>${encType}</string>
+            <key>HIDDEN_NETWORK</key>
+            <${hidden ? "true" : "false"}/>
+            <key>PayloadDisplayName</key>
+            <string>${escapeXml(ssid)}</string>
+            <key>PayloadIdentifier</key>
+            <string>com.qr.wifi.${payloadUUID}</string>
+            <key>PayloadType</key>
+            <string>com.apple.wifi.managed</string>
+            <key>PayloadUUID</key>
+            <string>${payloadUUID}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>SSID_STR</key>
+            <string>${escapeXml(ssid)}</string>${passBlock}
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+    <string>Wi-Fi: ${escapeXml(ssid)}</string>
+    <key>PayloadIdentifier</key>
+    <string>com.qr.profile.${rootUUID}</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>${rootUUID}</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>`;
+
+                const blob = new Blob([profileXml], { type: "application/x-apple-aspen-config" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+                showToast(pass ? "تم نسخ الرمز • وافق على ملف الشبكة للاتصال" : "وافق على ملف الشبكة للاتصال");
+                return;
+            }
+
+            if (IS_ANDROID) {
+                showToast(pass ? "تم نسخ الرمز • اختر الشبكة من الإعدادات" : "اختر الشبكة من إعدادات الواي فاي");
+                setTimeout(() => {
+                    window.location.href = "intent:#Intent;action=android.settings.WIFI_SETTINGS;end;";
+                }, 250);
+                return;
+            }
+
+            showToast(pass ? "تم نسخ كلمة المرور ✓" : `اسم الشبكة: ${ssid}`);
+        }
+
+        function saveContactToDevice(vcardText, contactName) {
+            const normalized = vcardText.replace(/\r?\n/g, "\r\n");
+            const blob = new Blob([normalized], { type: "text/vcard;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            if (!IS_IOS) {
+                const safeName = (contactName || "contact").replace(/[\\/:*?"<>|]/g, "_");
+                a.download = `${safeName}.vcf`;
+            }
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            showToast("تم فتح بطاقة جهة الاتصال للحفظ ✓");
+        }
+
+        function mecardToVcard(raw) {
+            const body = raw.replace(/^MECARD:/i, '');
+            const getField = (key) => {
+                const m = body.match(new RegExp(`(?:^|;)${key}:([^;]*)`, 'i'));
+                return m ? m[1].trim() : "";
+            };
+            const name = getField("N").replace(/,/g, " ").trim();
+            const phone = getField("TEL");
+            const email = getField("EMAIL");
+            const org = getField("ORG");
+
+            const lines = ["BEGIN:VCARD", "VERSION:3.0"];
+            if (name) {
+                lines.push(`N:;${name};;;`);
+                lines.push(`FN:${name}`);
+            }
+            if (phone) lines.push(`TEL;TYPE=CELL:${phone}`);
+            if (email) lines.push(`EMAIL;TYPE=INTERNET:${email}`);
+            if (org) lines.push(`ORG:${org}`);
+            lines.push("END:VCARD");
+            return { name: name || "جهة اتصال", phone, vcard: lines.join("\r\n") };
         }
 
         // ==================== الصوت ====================
@@ -1353,9 +1643,17 @@
                 resultText.textContent = "تأكد من الإنترنت وأعد فتح الصفحة";
             }
 
+            const isPortrait = window.innerHeight >= window.innerWidth;
             const tries = [
-                { video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
-                { video: { facingMode: facingMode }, audio: false },
+                {
+                    video: {
+                        facingMode: { ideal: facingMode },
+                        width: { ideal: isPortrait ? 1080 : 1920 },
+                        height: { ideal: isPortrait ? 1920 : 1080 }
+                    },
+                    audio: false
+                },
+                { video: { facingMode: { ideal: facingMode } }, audio: false },
                 { video: true, audio: false }
             ];
 
@@ -1380,6 +1678,8 @@
             videoStream = stream;
             cameraVideo.muted = true;
             cameraVideo.playsInline = true;
+            cameraVideo.setAttribute('playsinline', '');
+            cameraVideo.setAttribute('webkit-playsinline', '');
             cameraVideo.classList.toggle('mirrored', facingMode === "user");
             cameraVideo.srcObject = videoStream;
             try { await cameraVideo.play(); } catch (_) {}
@@ -1448,24 +1748,24 @@
             }
         });
 
-        function scanCanvasRegion(sx, sy, sw, sh, outW, outH) {
+        function captureVideoRegion(sx, sy, sw, sh, outW, outH) {
             hiddenCanvas.width = outW;
             hiddenCanvas.height = outH;
             hiddenCtx.drawImage(cameraVideo, sx, sy, sw, sh, 0, 0, outW, outH);
-            const imgData = hiddenCtx.getImageData(0, 0, outW, outH);
-            const code = jsQR(imgData.data, imgData.width, imgData.height, {
-                inversionAttempts: "attemptBoth"
-            });
-            return extractJsQRText(code);
+            return hiddenCtx.getImageData(0, 0, outW, outH);
         }
+
+        // دورة المسح السريع (تقرأ الأسود العادي والملون بأي لون)
+        const LIVE_COLOR_MODES = [null, null, "sat", "b", "r", "g", "dist"];
 
         function scanFrameLoop(ts) {
             if (activeView !== "scannerView" || !videoStream) return;
 
             const ready = cameraVideo.readyState >= 2 && cameraVideo.videoWidth > 0 && cameraVideo.videoHeight > 0;
 
-            if (ready && ts - lastScanCheck >= 110) {
+            if (ready && ts - lastScanCheck >= 105) {
                 lastScanCheck = ts;
+                const phase = scanTick % LIVE_COLOR_MODES.length;
                 scanTick++;
 
                 if (barcodeDetector && !isDetectingNative) {
@@ -1487,17 +1787,23 @@
                     let foundText = "";
 
                     try {
-                        if (scanTick % 2 === 0) {
-                            const cropSide = Math.round(Math.min(vw, vh) * 0.72);
-                            const sx = Math.round((vw - cropSide) / 2);
-                            const sy = Math.round((vh - cropSide) / 2);
-                            const outSide = Math.min(720, cropSide);
-                            foundText = scanCanvasRegion(sx, sy, cropSide, cropSide, outSide, outSide);
-                        } else {
-                            const scale = Math.min(1, 800 / Math.max(vw, vh));
+                        if (phase === 0) {
+                            // مسح الإطار الكامل للرموز العادية
+                            const scale = Math.min(1, 780 / Math.max(vw, vh));
                             const outW = Math.max(1, Math.round(vw * scale));
                             const outH = Math.max(1, Math.round(vh * scale));
-                            foundText = scanCanvasRegion(0, 0, vw, vh, outW, outH);
+                            const imgData = captureVideoRegion(0, 0, vw, vh, outW, outH);
+                            foundText = decodeAnyColorImageData(imgData, false, null);
+                        } else {
+                            // مسح مربع المنتصف بدقة عالية + قنوات الألوان المختلفة
+                            const cropSide = Math.round(Math.min(vw, vh) * 0.76);
+                            const sx = Math.round((vw - cropSide) / 2);
+                            const sy = Math.round((vh - cropSide) / 2);
+                            const colorMode = LIVE_COLOR_MODES[phase];
+                            const maxSide = colorMode ? 440 : 660;
+                            const outSide = Math.min(maxSide, cropSide);
+                            const imgData = captureVideoRegion(sx, sy, cropSide, cropSide, outSide, outSide);
+                            foundText = decodeAnyColorImageData(imgData, false, colorMode);
                         }
                     } catch (_) {}
 
@@ -1512,35 +1818,129 @@
 
         function parseScannedPayload(raw) {
             const lower = raw.toLowerCase();
+
             if (lower.startsWith("http://") || lower.startsWith("https://")) {
-                return { type: "رابط", actionText: "فتح ↗", href: raw, display: raw };
+                return {
+                    type: "رابط",
+                    display: raw,
+                    copyValue: raw,
+                    copyLabel: "نسخ",
+                    primaryText: "فتح ↗",
+                    primaryAction: () => window.open(raw, "_blank", "noopener,noreferrer"),
+                    secondaryText: "",
+                    secondaryHref: ""
+                };
             }
+
             if (/^www\.[^\s]+\.[^\s]+/i.test(raw)) {
-                return { type: "رابط", actionText: "فتح ↗", href: "https://" + raw, display: raw };
+                const fullUrl = "https://" + raw;
+                return {
+                    type: "رابط",
+                    display: raw,
+                    copyValue: raw,
+                    copyLabel: "نسخ",
+                    primaryText: "فتح ↗",
+                    primaryAction: () => window.open(fullUrl, "_blank", "noopener,noreferrer"),
+                    secondaryText: "",
+                    secondaryHref: ""
+                };
             }
+
             if (lower.startsWith("mailto:") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
                 const cleanEmail = raw.replace(/^mailto:/i, '').split('?')[0];
-                return { type: "بريد", actionText: "مراسلة ✉️", href: lower.startsWith("mailto:") ? raw : "mailto:" + cleanEmail, display: cleanEmail };
+                const href = lower.startsWith("mailto:") ? raw : "mailto:" + cleanEmail;
+                return {
+                    type: "بريد",
+                    display: cleanEmail,
+                    copyValue: cleanEmail,
+                    copyLabel: "نسخ",
+                    primaryText: "مراسلة ✉️",
+                    primaryAction: () => { window.location.href = href; },
+                    secondaryText: "",
+                    secondaryHref: ""
+                };
             }
+
             if (lower.startsWith("tel:") || /^\+?[0-9\s\-]{7,16}$/.test(raw)) {
                 const cleanTel = raw.replace(/^tel:/i, '').trim();
-                return { type: "رقم هاتف", actionText: "اتصال 📞", href: "tel:" + cleanTel.replace(/\s+/g, ''), display: cleanTel };
+                const href = "tel:" + cleanTel.replace(/\s+/g, '');
+                return {
+                    type: "رقم هاتف",
+                    display: cleanTel,
+                    copyValue: cleanTel,
+                    copyLabel: "نسخ",
+                    primaryText: "اتصال 📞",
+                    primaryAction: () => { window.location.href = href; },
+                    secondaryText: "",
+                    secondaryHref: ""
+                };
             }
+
             if (lower.startsWith("wifi:")) {
                 const ssidMatch = raw.match(/(?:^|[^\\]);?S:((?:\\.|[^;])*)/i);
                 const passMatch = raw.match(/(?:^|[^\\]);P:((?:\\.|[^;])*)/i);
-                const ssid = ssidMatch && ssidMatch[1] ? unescapeWifiValue(ssidMatch[1]) : "غير معروف";
-                const pass = passMatch && passMatch[1] ? unescapeWifiValue(passMatch[1]) : "بدون كلمة مرور";
-                return { type: "واي فاي", actionText: "", href: "", display: `الشبكة: ${ssid} | الرمز: ${pass}` };
+                const typeMatch = raw.match(/(?:^|[^\\]);?T:((?:\\.|[^;])*)/i);
+                const hiddenMatch = raw.match(/(?:^|[^\\]);H:(true|false)/i);
+
+                const ssid = ssidMatch && ssidMatch[1] ? unescapeWifiValue(ssidMatch[1]) : "";
+                const pass = passMatch && passMatch[1] ? unescapeWifiValue(passMatch[1]) : "";
+                const enc = typeMatch && typeMatch[1] ? typeMatch[1].toUpperCase() : (pass ? "WPA" : "nopass");
+                const hidden = hiddenMatch ? hiddenMatch[1].toLowerCase() === "true" : false;
+
+                return {
+                    type: "واي فاي",
+                    display: `الشبكة: ${ssid || "غير معروف"} | الرمز: ${pass || "بدون كلمة مرور"}`,
+                    copyValue: pass || ssid,
+                    copyLabel: pass ? "نسخ الرمز" : "نسخ الاسم",
+                    primaryText: ssid ? "اتصال بالشبكة 📶" : "",
+                    primaryAction: ssid ? () => connectToWifiNetwork({ ssid, pass, enc, hidden }) : null,
+                    secondaryText: "",
+                    secondaryHref: ""
+                };
             }
+
             if (lower.startsWith("begin:vcard")) {
-                const fnMatch = raw.match(/FN:(.+)/i);
+                const fnMatch = raw.match(/FN(?:;[^:]*)?:(.+)/i);
                 const telMatch = raw.match(/TEL[^:]*:(.+)/i);
                 const name = fnMatch ? fnMatch[1].trim() : "جهة اتصال";
                 const phone = telMatch ? telMatch[1].trim() : "";
-                return { type: "جهة اتصال", actionText: phone ? "اتصال 📞" : "", href: phone ? `tel:${phone.replace(/\s+/g, '')}` : "", display: `${name}${phone ? ' - ' + phone : ''}` };
+
+                return {
+                    type: "جهة اتصال",
+                    display: `${name}${phone ? ' - ' + phone : ''}`,
+                    copyValue: phone || name,
+                    copyLabel: phone ? "نسخ الرقم" : "نسخ",
+                    primaryText: "إضافة لجهات الاتصال 👤",
+                    primaryAction: () => saveContactToDevice(raw, name),
+                    secondaryText: phone ? "اتصال 📞" : "",
+                    secondaryHref: phone ? `tel:${phone.replace(/\s+/g, '')}` : ""
+                };
             }
-            return { type: "نص", actionText: "", href: "", display: raw };
+
+            if (lower.startsWith("mecard:")) {
+                const converted = mecardToVcard(raw);
+                return {
+                    type: "جهة اتصال",
+                    display: `${converted.name}${converted.phone ? ' - ' + converted.phone : ''}`,
+                    copyValue: converted.phone || converted.name,
+                    copyLabel: converted.phone ? "نسخ الرقم" : "نسخ",
+                    primaryText: "إضافة لجهات الاتصال 👤",
+                    primaryAction: () => saveContactToDevice(converted.vcard, converted.name),
+                    secondaryText: converted.phone ? "اتصال 📞" : "",
+                    secondaryHref: converted.phone ? `tel:${converted.phone.replace(/\s+/g, '')}` : ""
+                };
+            }
+
+            return {
+                type: "نص",
+                display: raw,
+                copyValue: raw,
+                copyLabel: "نسخ",
+                primaryText: "",
+                primaryAction: null,
+                secondaryText: "",
+                secondaryHref: ""
+            };
         }
 
         function handleDetectedQR(data) {
@@ -1563,41 +1963,58 @@
             resultText.textContent = parsed.display;
             scanActionRow.style.display = "flex";
 
-            if (parsed.href) {
-                currentActionHref = parsed.href;
-                openActionBtn.textContent = parsed.actionText;
+            currentCopyText = parsed.copyValue || parsed.display;
+            copyScanBtn.textContent = parsed.copyLabel || "نسخ";
+
+            if (parsed.primaryAction && parsed.primaryText) {
+                currentScanAction = parsed.primaryAction;
+                openActionBtn.textContent = parsed.primaryText;
                 openActionBtn.style.display = "inline-flex";
             } else {
-                currentActionHref = "";
+                currentScanAction = null;
                 openActionBtn.style.display = "none";
+            }
+
+            if (parsed.secondaryHref && parsed.secondaryText) {
+                currentSecondaryHref = parsed.secondaryHref;
+                secondaryActionBtn.textContent = parsed.secondaryText;
+                secondaryActionBtn.style.display = "inline-flex";
+            } else {
+                currentSecondaryHref = "";
+                secondaryActionBtn.style.display = "none";
             }
 
             saveToHistory("مسح", parsed.type, parsed.display, data);
         }
 
         openActionBtn.addEventListener('click', () => {
-            if (!currentActionHref) return;
-            if (currentActionHref.startsWith("http://") || currentActionHref.startsWith("https://")) {
-                window.open(currentActionHref, "_blank", "noopener,noreferrer");
-            } else {
-                window.location.href = currentActionHref;
+            if (typeof currentScanAction === "function") {
+                currentScanAction();
             }
+        });
+
+        secondaryActionBtn.addEventListener('click', () => {
+            if (!currentSecondaryHref) return;
+            window.location.href = currentSecondaryHref;
         });
 
         copyScanBtn.addEventListener('click', async () => {
             if (!lastScannedData) return;
-            const ok = await copyTextSafe(resultText.textContent);
+            const ok = await copyTextSafe(currentCopyText || resultText.textContent);
             showToast(ok ? "تم النسخ ✓" : "تعذر النسخ");
         });
 
         resetScanBtn.addEventListener('click', () => {
             lastScannedData = "";
-            currentActionHref = "";
+            currentScanAction = null;
+            currentSecondaryHref = "";
+            currentCopyText = "";
             scanTypeBadge.style.display = "none";
             resultText.textContent = "وجّه الكاميرا نحو رمز QR";
             scanActionRow.style.display = "none";
         });
 
+        // مسح من صورة في المعرض (يدعم جميع الألوان)
         scanGalleryBtn.addEventListener('click', () => scanFileInput.click());
 
         scanFileInput.addEventListener('change', (e) => {
@@ -1626,7 +2043,7 @@
                 }
 
                 if (!found && typeof jsQR === "function") {
-                    const scales = [1200, 800, 1600, 500];
+                    const scales = [1000, 650, 1400, 450];
                     for (const maxDim of scales) {
                         let w = img.width;
                         let h = img.height;
@@ -1635,7 +2052,7 @@
                             if (w > h) { w = maxDim; h = Math.round(maxDim / r); }
                             else { h = maxDim; w = Math.round(maxDim * r); }
                         }
-                        const pad = 28;
+                        const pad = 24;
                         hiddenCanvas.width = w + pad * 2;
                         hiddenCanvas.height = h + pad * 2;
                         hiddenCtx.fillStyle = "#FFFFFF";
@@ -1643,12 +2060,8 @@
                         hiddenCtx.drawImage(img, pad, pad, w, h);
 
                         const imgData = hiddenCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-                        const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
-                        const txt = extractJsQRText(code);
-                        if (txt) {
-                            found = txt;
-                            break;
-                        }
+                        found = decodeAnyColorImageData(imgData, true, null);
+                        if (found) break;
                     }
                 }
 
@@ -1721,7 +2134,7 @@
                     const safeSsid = escapeWifiValue(ssid);
                     const safePass = enc === "nopass" ? "" : escapeWifiValue(pass);
                     payload = enc === "nopass"
-                        ? `WIFI:T:nopass;S:${safeSsid};;`
+                        ? `WIFI:T:nopass;S:${safeSsid};P:;;`
                         : `WIFI:T:${enc};S:${safeSsid};P:${safePass};;`;
                 }
             } else if (currentTemplate === "whatsapp") {
@@ -1746,11 +2159,14 @@
                 if (name || phone || email || org) {
                     const lines = ["BEGIN:VCARD", "VERSION:3.0"];
                     if (name) {
-                        lines.push(`N:;${name};;;`);
+                        const parts = name.split(/\s+/);
+                        const first = parts[0] || "";
+                        const last = parts.slice(1).join(" ");
+                        lines.push(`N:${last};${first};;;`);
                         lines.push(`FN:${name}`);
                     }
                     if (phone) lines.push(`TEL;TYPE=CELL:${phone}`);
-                    if (email) lines.push(`EMAIL:${email}`);
+                    if (email) lines.push(`EMAIL;TYPE=INTERNET:${email}`);
                     if (org) lines.push(`ORG:${org}`);
                     lines.push("END:VCARD");
                     payload = lines.join("\r\n");
