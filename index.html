@@ -45,6 +45,12 @@
             user-select: none;
         }
 
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             background-color: var(--bg-main);
             background-image:
@@ -53,7 +59,6 @@
             color: var(--text-primary);
             height: 100vh;
             height: 100dvh;
-            width: 100vw;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -154,6 +159,7 @@
             inset: 0;
             width: 100%;
             height: 100%;
+            overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             padding-bottom: calc(92px + var(--safe-bottom));
@@ -393,29 +399,32 @@
 
         /* ==================== 2. صفحة استوديو التوليد الاحترافي ==================== */
         #generatorView {
-            padding: 16px 16px calc(100px + var(--safe-bottom));
+            padding: 16px 14px calc(100px + var(--safe-bottom));
         }
 
         .studio-grid {
+            width: 100%;
             max-width: 960px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             gap: 16px;
         }
 
         @media (min-width: 820px) {
             .studio-grid {
-                grid-template-columns: 340px 1fr;
+                grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
                 align-items: start;
             }
         }
 
         .preview-panel {
+            min-width: 0;
+            width: 100%;
             background: var(--glass-surface);
             border: 1px solid var(--glass-border);
             border-radius: 22px;
-            padding: 18px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -455,11 +464,13 @@
 
         #genStatusText {
             margin-top: 10px;
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 700;
             color: var(--text-secondary);
             text-align: center;
             min-height: 24px;
+            width: 100%;
+            word-break: break-word;
         }
 
         .export-bar {
@@ -471,17 +482,19 @@
 
         .exp-btn {
             flex: 1;
+            min-width: 0;
             height: 42px;
             border-radius: 12px;
             border: none;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             font-weight: 800;
             color: #fff;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 4px;
+            white-space: nowrap;
         }
 
         .btn-png { background: var(--emerald); }
@@ -489,6 +502,8 @@
         .btn-share { background: var(--primary); }
 
         .controls-panel {
+            min-width: 0;
+            width: 100%;
             background: var(--glass-surface);
             border: 1px solid var(--glass-border);
             border-radius: 22px;
@@ -511,6 +526,7 @@
         .template-tabs {
             display: flex;
             gap: 7px;
+            width: 100%;
             overflow-x: auto;
             padding-bottom: 4px;
             scrollbar-width: none;
@@ -527,6 +543,7 @@
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
+            flex-shrink: 0;
             transition: all 0.2s ease;
         }
 
@@ -541,6 +558,7 @@
             display: none;
             flex-direction: column;
             gap: 10px;
+            width: 100%;
         }
         .tpl-form.active {
             display: flex;
@@ -548,18 +566,19 @@
 
         .field-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 10px;
         }
 
         @media (max-width: 420px) {
             .field-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
             }
         }
 
         .std-input, .std-select, .std-textarea {
             width: 100%;
+            min-width: 0;
             height: 46px;
             background: var(--bg-main);
             border: 1.5px solid rgba(255, 255, 255, 0.12);
@@ -595,10 +614,11 @@
         }
 
         .upload-zone {
+            width: 100%;
             border: 2px dashed rgba(99, 102, 241, 0.55);
             background: rgba(99, 102, 241, 0.07);
             border-radius: 16px;
-            padding: 16px;
+            padding: 16px 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -616,7 +636,7 @@
         }
 
         .upload-zone h4 {
-            font-size: 0.95rem;
+            font-size: 0.94rem;
             color: var(--text-primary);
             margin-bottom: 4px;
         }
@@ -644,7 +664,7 @@
 
         .style-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
             background: var(--bg-main);
             padding: 12px;
@@ -653,10 +673,11 @@
         }
 
         .color-item {
+            min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            font-size: 0.76rem;
+            font-size: 0.74rem;
             color: var(--text-secondary);
             font-weight: 700;
         }
@@ -677,9 +698,13 @@
             border: 1px dashed var(--accent);
             background: rgba(0, 245, 212, 0.08);
             color: var(--accent);
-            font-size: 0.76rem;
+            font-size: 0.74rem;
             font-weight: 700;
             cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 4px;
         }
 
         /* ==================== 3. صفحة سجل المحفوظات ==================== */
@@ -791,7 +816,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: min(92%, 440px);
-            height: 62px;
+            height: 60px;
             background: rgba(15, 23, 42, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -800,25 +825,27 @@
             display: flex;
             align-items: center;
             justify-content: space-around;
-            padding: 6px;
+            padding: 5px;
             z-index: 50;
             box-shadow: 0 14px 35px rgba(0, 0, 0, 0.7);
         }
 
         .nav-tab {
             flex: 1;
+            min-width: 0;
             height: 100%;
             border-radius: 999px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
-            font-size: 0.86rem;
+            font-size: 0.82rem;
             font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
+            gap: 5px;
+            white-space: nowrap;
             transition: all 0.25s ease;
         }
 
@@ -936,7 +963,7 @@
                     <div class="tpl-form" id="form-files">
                         <div class="upload-zone" id="uploadTriggerZone">
                             <h4>اضغط لاختيار عدة صور أو ملف PDF</h4>
-                            <p>يتم دمج الصور تلقائياً واحدة تحت الأخرى وعرضها مباشرة في المتصفح</p>
+                            <p>يتم دمج الصور تلقائياً واحدة تحت الأخرى وعرضها مباشرة بدون إضافات</p>
                         </div>
                         <div class="progress-track" id="uploadProgressTrack">
                             <div class="progress-bar" id="uploadProgressBar"></div>
@@ -1023,11 +1050,13 @@
     <!-- شريط التنقل السفلي -->
     <nav class="bottom-nav">
         <button class="nav-tab active" data-target="scannerView">📷 الماسح</button>
-        <button class="nav-tab" data-target="generatorView">✨ استوديو التوليد</button>
+        <button class="nav-tab" data-target="generatorView">✨ التوليد</button>
         <button class="nav-tab" data-target="historyView">🕘 السجل</button>
     </nav>
 
     <script>
+        const IMGBB_API_KEY = "d6e15cb5b6c12b8e7157afee611aa441";
+
         // عناصر النظام العامة
         const toastBox = document.getElementById('toastBox');
         const soundToggleBtn = document.getElementById('soundToggleBtn');
@@ -1182,7 +1211,7 @@
             return str.replace(/\\([\\;,:"])/g, '$1');
         }
 
-        async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
+        async function fetchWithTimeout(url, options = {}, timeoutMs = 25000) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeoutMs);
             try {
@@ -1190,6 +1219,25 @@
             } finally {
                 clearTimeout(timer);
             }
+        }
+
+        // التحقق الفعلي أن رابط الصورة يفتح مباشرة كصورة خام على نفس شبكة الجهاز
+        function verifyRawImageUrl(url, timeoutMs = 9000) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                let settled = false;
+                const done = (ok) => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    img.onload = img.onerror = null;
+                    resolve(ok);
+                };
+                const timer = setTimeout(() => done(false), timeoutMs);
+                img.onload = () => done(img.naturalWidth > 0);
+                img.onerror = () => done(false);
+                img.src = url;
+            });
         }
 
         // ==================== صوت النظام ====================
@@ -1866,7 +1914,7 @@
             }, "image/png");
         });
 
-        // ==================== دمج الصور عمودياً ورفع الملفات بروابط مباشرة ====================
+        // ==================== دمج الصور عمودياً ورفع الملفات ====================
         uploadTriggerZone.addEventListener('click', () => {
             if (!isUploading) uploadFilesInput.click();
         });
@@ -1908,7 +1956,7 @@
             isUploading = true;
             uploadTriggerZone.classList.add('disabled');
             uploadProgressTrack.style.display = "block";
-            uploadProgressBar.style.width = "25%";
+            uploadProgressBar.style.width = "20%";
             genStatusText.style.color = "var(--accent)";
 
             let uploadedUrl = null;
@@ -1918,17 +1966,16 @@
                 if (pdfFiles.length > 0) {
                     historyLabel = "ملف PDF";
                     genStatusText.textContent = "جاري رفع ملف الـ PDF وتوليد الرمز...";
-                    uploadProgressBar.style.width = "60%";
-                    uploadedUrl = await uploadDirectFile(pdfFiles[0]);
+                    uploadProgressBar.style.width = "55%";
+                    uploadedUrl = await uploadGeneralFile(pdfFiles[0]);
                 } else if (imgFiles.length > 0) {
                     historyLabel = imgFiles.length > 1 ? "صور متتالية" : "صورة";
                     genStatusText.textContent = imgFiles.length > 1
-                        ? `جاري دمج ${imgFiles.length} صور ورفعها مباشرة...`
-                        : "جاري تجهيز الصورة ورفعها مباشرة...";
+                        ? `جاري دمج ${imgFiles.length} صور ورفعها...`
+                        : "جاري تحسين ورفع الصورة...";
                     const mergedBlob = await combineImagesVertically(imgFiles, 950);
                     uploadProgressBar.style.width = "65%";
-                    const imgFile = new File([mergedBlob], `qr_${Date.now()}.jpg`, { type: "image/jpeg" });
-                    uploadedUrl = await uploadDirectFile(imgFile);
+                    uploadedUrl = await uploadImageRaw(mergedBlob);
                 }
             } catch (_) {}
 
@@ -2010,7 +2057,7 @@
                             });
 
                             cleanup();
-                            c.toBlob(b => b ? resolve(b) : reject(new Error("Blob failed")), "image/jpeg", 0.86);
+                            c.toBlob(b => b ? resolve(b) : reject(new Error("Blob failed")), "image/jpeg", 0.85);
                         }
                     };
 
@@ -2026,56 +2073,88 @@
             });
         }
 
-        // سيرفرات تفتح الصورة أو الـ PDF مباشرة بدون أي صفحة وسيطة أو إضافات
-        async function uploadDirectFile(file) {
-            // 1. qu.ax (رابط خام مباشر للصورة أو الـ PDF)
+        // تحويل رابط الصورة إلى رابط عرض خام مباشر عبر شبكة Cloudflare (بدون إعلانات وبدون حجب 4G)
+        async function resolveDirectImageLink(rawUrl) {
+            if (!rawUrl) return null;
+            const cleanTarget = rawUrl.replace(/^https?:\/\//i, '');
+            const proxiedUrl = `https://wsrv.nl/?url=${encodeURI(cleanTarget)}`;
+            if (await verifyRawImageUrl(proxiedUrl, 8500)) {
+                return proxiedUrl;
+            }
+            if (await verifyRawImageUrl(rawUrl, 5000)) {
+                return rawUrl;
+            }
+            return null;
+        }
+
+        async function uploadImageRaw(blob) {
+            // 1. الرفع عبر ImgBB (يدعم CORS ودائم) ثم عرضه مباشرة عبر wsrv.nl لتجاوز حجب i.ibb.co
             try {
-                const fd1 = new FormData();
-                fd1.append("files[]", file);
-                const r1 = await fetchWithTimeout("https://qu.ax/upload.php", { method: "POST", body: fd1 });
-                if (r1.ok) {
-                    const j1 = await r1.json();
-                    if (j1 && j1.success && j1.files && j1.files[0] && j1.files[0].url) {
-                        return j1.files[0].url;
+                const fd = new FormData();
+                fd.append("key", IMGBB_API_KEY);
+                fd.append("image", blob, "qr_merged.jpg");
+                const res = await fetchWithTimeout("https://api.imgbb.com/1/upload", { method: "POST", body: fd });
+                if (res.ok) {
+                    const json = await res.json();
+                    const rawUrl = json && json.data && (json.data.url || (json.data.image && json.data.image.url));
+                    if (rawUrl) {
+                        const verified = await resolveDirectImageLink(rawUrl);
+                        if (verified) return verified;
                     }
                 }
             } catch (_) {}
 
-            // 2. pixeldrain.com (رابط خام مباشر عبر API)
+            // 2. الرفع عبر tmpfiles.org (يدعم CORS) ثم عرضه مباشرة عبر wsrv.nl لإخفاء صفحة الموقع
+            const imgFile = new File([blob], `qr_${Date.now()}.jpg`, { type: "image/jpeg" });
+            try {
+                const fd2 = new FormData();
+                fd2.append("file", imgFile);
+                const r2 = await fetchWithTimeout("https://tmpfiles.org/api/v1/upload", { method: "POST", body: fd2 });
+                if (r2.ok) {
+                    const j2 = await r2.json();
+                    if (j2 && j2.data && j2.data.url) {
+                        let dlUrl = j2.data.url.replace("http://", "https://");
+                        if (!dlUrl.includes("tmpfiles.org/dl/")) {
+                            dlUrl = dlUrl.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+                        }
+                        const verified = await resolveDirectImageLink(dlUrl);
+                        if (verified) return verified;
+                        return dlUrl;
+                    }
+                }
+            } catch (_) {}
+
+            // 3. احتياطي أخير: gofile.io
+            return await uploadGeneralFile(imgFile);
+        }
+
+        async function uploadGeneralFile(file) {
+            // 1. tmpfiles.org
+            try {
+                const fd1 = new FormData();
+                fd1.append("file", file);
+                const r1 = await fetchWithTimeout("https://tmpfiles.org/api/v1/upload", { method: "POST", body: fd1 });
+                if (r1.ok) {
+                    const j1 = await r1.json();
+                    if (j1 && j1.data && j1.data.url) {
+                        let url = j1.data.url.replace("http://", "https://");
+                        if (!url.includes("tmpfiles.org/dl/")) {
+                            url = url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+                        }
+                        return url;
+                    }
+                }
+            } catch (_) {}
+
+            // 2. gofile.io
             try {
                 const fd2 = new FormData();
                 fd2.append("file", file);
-                const r2 = await fetchWithTimeout("https://pixeldrain.com/api/file", { method: "POST", body: fd2 });
+                const r2 = await fetchWithTimeout("https://upload.gofile.io/uploadfile", { method: "POST", body: fd2 });
                 if (r2.ok) {
                     const j2 = await r2.json();
-                    if (j2 && j2.id) {
-                        return `https://pixeldrain.com/api/file/${j2.id}`;
-                    }
-                }
-            } catch (_) {}
-
-            // 3. pomf2.lain.la (رابط خام مباشر)
-            try {
-                const fd3 = new FormData();
-                fd3.append("files[]", file);
-                const r3 = await fetchWithTimeout("https://pomf2.lain.la/upload.php", { method: "POST", body: fd3 });
-                if (r3.ok) {
-                    const j3 = await r3.json();
-                    if (j3 && j3.success && j3.files && j3.files[0] && j3.files[0].url) {
-                        return j3.files[0].url;
-                    }
-                }
-            } catch (_) {}
-
-            // 4. uguu.se (احتياطي مباشر)
-            try {
-                const fd4 = new FormData();
-                fd4.append("files[]", file);
-                const r4 = await fetchWithTimeout("https://uguu.se/upload", { method: "POST", body: fd4 });
-                if (r4.ok) {
-                    const j4 = await r4.json();
-                    if (j4 && j4.success && j4.files && j4.files[0] && j4.files[0].url) {
-                        return j4.files[0].url;
+                    if (j2 && j2.status === "ok" && j2.data && j2.data.downloadPage) {
+                        return j2.data.downloadPage;
                     }
                 }
             } catch (_) {}
