@@ -2477,7 +2477,7 @@
                         count++;
                         if (count === files.length) {
                             let targetWidth = baseWidth;
-                            const gap = loaded.length > 1 ? 14 : 0;
+                            const gap = loaded.length > 1 ? 60 : 0;
                             let rawHeight = gap * (loaded.length - 1);
                             loaded.forEach(im => rawHeight += Math.round(targetWidth * (im.height / im.width)));
 
